@@ -1,9 +1,13 @@
-import excitation_matrices as em
-from qiskit.quantum_info import Pauli,Operator
+#Packages----------------------------------------------------
+
+import numpy as np
+import matplotlib.pyplot as plt
+from parameters import *
+
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit,QuantumRegister
 from qiskit import transpile
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
 from qiskit_nature.second_q.hamiltonians.lattices import (
@@ -15,19 +19,19 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     SquareLattice,
     TriangularLattice,
 )
+import sys
+import copy
+import time
+
+#------------------------------------------------------------
+
 
 # Building the Hamiltonian of Hubbard's model using qiskit
-
-N = 2 # Number of sites. This entire code only works for 2 sites because of the circuit.
-t = -1
-U = 4
-mu = U/2
-
 
     # Initializing latice
     
 boundary_condition = BoundaryCondition.OPEN
-lattice = LineLattice(num_nodes = N, boundary_condition = boundary_condition)
+lattice = LineLattice(num_nodes=N, boundary_condition = boundary_condition)
 #lattice.draw()
 #plt.show()
 
@@ -43,7 +47,7 @@ Hamiltonian = FermiHubbardModel(
 ).second_q_op() # The last line transforms the newly created Hamiltonian into a FermionicOp object
 
 
-# Circuit.
+# Circuit
 
 """The following circuit must be derived from the GS by hand."""
 
@@ -66,21 +70,13 @@ circuit.draw('mpl')
 #print()
 #plt.show()
 
-# Asking the user for the calculation
 
-print('Calculation using the quantum computer.')
-print('Calculate one or all matrices?  (H+,H-,S+,S- or ALL)  ALL')
-print('Generate .npy files? (Y,N) Y')
+# Ground state
+qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(Hamiltonian)
 
-N = 2
-N_min = 1
+job = pEstimator().run(circuit,qubit_hamiltonian)
+result = job.result()
+values = result.values
+print('Ground State:',values[0])
 
-print('Name of the document containing the excitation types?  excitation.def')
-print('Spin of left side?  +')
-print('Spin of right side?  +')
-
-for type in ['H+','H-','S+','S-']:
-    print(type+':')
-    print(em.matrix(type,'excitation.def',N,N_min,'+','+',Hamiltonian,circuit,'Y'))
-    print()
-
+omega = values[0]

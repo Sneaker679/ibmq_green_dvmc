@@ -19,6 +19,8 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 
+from parameters import N,U
+from gs import omega
 import numpy as np
 from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
@@ -35,10 +37,9 @@ import matplotlib.pyplot as plt
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)
 
-U=4
+#U=4
 Nb=0
-Nc=4
-
+Nc=N
 
 trans_invariant = False
 add_noise = False
@@ -67,7 +68,7 @@ if (len(sys.argv)>=6):
   pct_filter=float(sys.argv[5])  
 
 
-def dvmc_spectrum(verbose=1):
+def dvmc_spectrum(Omega,verbose=1):
 
   sum_rule_max = sum_rule_max_ok
   sum_rule_min = sum_rule_min_ok
@@ -77,7 +78,6 @@ def dvmc_spectrum(verbose=1):
   w_max_data = 15.0
   eta = 0.1
   Nw = 2000
-  Omega = -10
 
   Nsite   = Nc + Nb
   dw = (w_max_data-w_min_data)/(Nw-1)
@@ -270,8 +270,6 @@ def dvmc_spectrum(verbose=1):
   #plt.show()
   
   sys.exit()  
-  
-if __name__ == "__main__":
-   dvmc_spectrum(verbose_read)
 
 
+dvmc_spectrum(omega,verbose_read)
