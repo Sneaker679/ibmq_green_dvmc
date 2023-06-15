@@ -1,4 +1,4 @@
-import func as f
+import fock_class as f
 import numpy as np
 import copy
 import time

@@ -237,6 +237,9 @@ def dvmc_spectrum(Omega,verbose=1):
   e = time.time()
   print("Execution time : ", e-stot)
 
+  # local dos
+
+  '''
   # get dos
   dos = np.zeros([3,Nw], dtype='float')
   for i in range(Nw):
@@ -249,7 +252,8 @@ def dvmc_spectrum(Omega,verbose=1):
     for kk in range(3):
       file_dos.write('% 7.6f '  %(dos[kk,ii]))#/(total_sum)))
     file_dos.write('\n')
-  
+  '''
+
   # print solution for interface with QCM
   #print_solution_for_QCM(params,u_ac2,e_ac2_r,u_ca2,e_ca2_r)
 
@@ -260,13 +264,21 @@ def dvmc_spectrum(Omega,verbose=1):
   #for ii in range(2):
     ax.plot(w_,totalAij[ii,ii,:]+ii*shift)
     ax.plot([w_.min(),w_.max()],[ii*shift,ii*shift],c='black')
-
+  
+  # local dos
+  file_dos   = open(outputDir+'local_dos.dat','w')
+  for ii in range(Nw):
+    file_dos.write('% 7.6f   '  %w_[ii])
+    for kk in range(Nc):
+      file_dos.write('% 7.6f '  %(totalAij[kk,kk,ii]))#/(total_sum)))
+    file_dos.write('\n')
+    
   #ax.set_xlim(w_.min(),w_.max())
   ax.axvline(x=0)
   ax.set_xlim(-10,10)
 
   #matplotlib.use('Agg')
-  plt.savefig('spectrum_rspace.pdf')
+  plt.savefig('ibmq_spectrum.pdf')
   #plt.show()
   
   sys.exit()  

@@ -1,8 +1,8 @@
 import sys
 import numpy as np
-import hubbard_simplified as hs
+import hubbard as hs
 import hubbard_classes as hc
-import focktest_green as fg
+import focktest as fg
 import focktest_classes as fc
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator

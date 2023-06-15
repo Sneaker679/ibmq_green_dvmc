@@ -1,4 +1,4 @@
-import func as f
+import fock_class as f
 import hubbard_classes as h
 import numpy as np
 import copy
@@ -142,8 +142,8 @@ if __name__ == "__main__":
     type = 'H+'
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
-    N = 2
-    N_min = 1 
+    N = 4
+    N_min = 2 
 
     # Spins
     spin_left = '+'
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     mu = 2
 
     # Excitation document name
-    excit_doc = 'excitation.def'
+    excit_doc = 'excitation4sites.def'
 
     print(type+':')
     print(matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu))
