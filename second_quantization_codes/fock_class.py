@@ -82,5 +82,3 @@ class Fock():
             self.sign = 0
             self.num_electrons = 0
             self.total_spin = 0
-
-

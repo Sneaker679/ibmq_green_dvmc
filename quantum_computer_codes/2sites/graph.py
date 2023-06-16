@@ -19,8 +19,13 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 
-from parameters import N,U
-from gs import omega
+from qiskit.quantum_info import Pauli,Operator
+from qiskit.primitives import Estimator as pEstimator
+from qiskit_nature.second_q.mappers import JordanWignerMapper
+from qiskit_nature.second_q.operators import FermionicOp
+from qiskit import QuantumCircuit,QuantumRegister
+from qiskit import transpile
+from parameters import N,U,Hamiltonian,circuit
 import numpy as np
 from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
@@ -33,6 +38,17 @@ import time
 
 import matplotlib
 import matplotlib.pyplot as plt
+
+
+### CALCULATING GROUND STATE ENERGY ###
+qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(Hamiltonian)
+
+job = pEstimator().run(circuit,qubit_hamiltonian)
+result = job.result()
+values = result.values
+omega = values[0]
+#######################################
+
 
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)

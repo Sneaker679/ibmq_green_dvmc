@@ -5,7 +5,7 @@ import time
 
 np.set_printoptions(precision=2)
 
-def hubbard(N,t=1,U=4,mu=2,manip='no',prt='no'):
+def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
 
     bank = [state_num for state_num in range(4**N)]
     gs_energies = []
@@ -25,9 +25,9 @@ def hubbard(N,t=1,U=4,mu=2,manip='no',prt='no'):
         for state in block:
             for i in range(N):
                 for j in range(N):
-                    if i != j:
+                    if not i == j and not t[i,j] == 0 :
                         for spin in ['+','-']:
-                            
+
                             new_state = copy.deepcopy(state)
                             new_state.op('destroy',i,spin)
                             new_state.op('create',j,spin)
@@ -51,7 +51,16 @@ def hubbard(N,t=1,U=4,mu=2,manip='no',prt='no'):
                 bank.remove(number)
         
         for tuple in block_tuples:
-            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = -t*tuple[1].sign
+            hopping = tuple[0].fock - tuple[1].fock
+            hopping = hopping.tolist()
+            site1 = hopping[0].index(-1)
+            site2 = hopping[0].index(1)
+
+            if site1 > N - 1:
+                site1 = int(site1 - N)
+                site2 = int(site2 - N)
+
+            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = -t[site1,site2]*tuple[1].sign
 
         if not U == 0: 
             for index,num in enumerate(block_num):
@@ -108,3 +117,12 @@ def hubbard(N,t=1,U=4,mu=2,manip='no',prt='no'):
         return gs_energy,gs_numerical_state,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
+'''
+t=np.matrix([
+    [0,1,1,0],
+    [1,0,0,1],
+    [1,0,0,1],
+    [0,1,1,0]
+])
+print(hubbard(4,t,4,2))
+'''

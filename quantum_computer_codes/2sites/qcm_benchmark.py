@@ -1,10 +1,9 @@
 import pyqcm
-import qcm_model_1D_L2 as M
 import numpy as np
-from qcm_model_1D_L2 import Nc
-from parameters import t,U,mu
+import parameters as M
+from parameters import t,U,mu,N
 
-sec = f'R0:N{Nc}:S0'
+sec = f'R0:N{N}:S0'
 M.model.set_target_sectors([sec])
 M.model.set_parameters(f"""
 t={-t}
@@ -23,7 +22,7 @@ w_ = result[0]
 local_dos = result[1]
 for ii in range(len(w_)):
     file_dos_qcm.write('% 7.6f   '  %w_[ii])
-    for kk in range(Nc):
+    for kk in range(N):
         file_dos_qcm.write('% 7.6f '  %(local_dos[ii,kk]/np.pi))#/(total_sum)))
     file_dos_qcm.write('\n')
 file_dos_qcm.close()

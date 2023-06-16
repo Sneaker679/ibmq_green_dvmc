@@ -22,11 +22,10 @@ for site in range(num_rows-1):
     array_x = np.loadtxt("local_dos_qcm.dat",unpack=True,usecols=(0,site+1))[0]
     line2, = plt.plot(array_x,array_y, 'k',linewidth=1.0,label='Exact with qcm')
     
-    plt.legend(handles=[line1, line2], loc='upper right')
+    plt.legend(handles=[line1, line2])
 
 #plt.show()
 plt.ylabel( r"$A_{ii} (\omega)$")
 plt.xlabel('$\omega$')
-plt.xlim([-6,6])
-
+plt.xlim([-10,10])
 plt.savefig('combined_spectrum.pdf')

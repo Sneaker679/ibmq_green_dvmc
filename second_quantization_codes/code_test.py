@@ -32,9 +32,13 @@ N_min_values = [1]
 spins_left = ['+','-']
 spins_right = ['+','-']
 t_values = [1]
+t_mat = np.matrix([
+    [0,1],
+    [1,0]
+]) 
 U_values = range(9)
 mu_values = range(5)
-excit_doc = 'excitation.def'
+excit_doc = f'excitation{N_values[0]}sites.def'
 
 
 # Test 1 - gs calculation
@@ -64,7 +68,7 @@ if '2' in answer:
                         for t in t_values:
                             for U in U_values:
                                 for mu in mu_values:
-                                    result1 = fc.matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu)
+                                    result1 = fc.matrix(type,excit_doc,N,N_min,spin_left,spin_right,t_mat,U,mu)
                                     result2 = fg.matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu)
                                     
                                     print(['type','spin_left','spin_right','N','N_min','t','U','mu'])
