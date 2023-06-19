@@ -27,15 +27,17 @@ answer = input('Tests to be ran?  ')
 
 # Parameters
 types = ['H+','H-','S+','S-']
-N_values = [2]
-N_min_values = [1]
+N_values = [4]
+N_min_values = [2]
 spins_left = ['+','-']
 spins_right = ['+','-']
 t_values = [1]
 t_mat = np.matrix([
-    [0,1],
-    [1,0]
-]) 
+    [0,1,1,1],
+    [1,0,1,1],
+    [1,1,0,1],
+    [1,1,1,0]
+])
 U_values = range(9)
 mu_values = range(5)
 excit_doc = f'excitation{N_values[0]}sites.def'
@@ -48,7 +50,7 @@ if '1' in answer:
             for U in U_values:
                 for mu in mu_values:
                     GS,E,GS_bloc_matrix = hs.hubbard(N,t,U,mu)
-                    gs_energy,gs_numerical_state,gs_block_matrix = hc.hubbard(N,t,U,mu)
+                    gs_energy,gs_numerical_state,gs_block_matrix = hc.hubbard(N,t_mat,U,mu)
                     print(['N','t','U','mu'])
                     print([N,t,U,mu])
                     print('GS_energies: ',E == gs_energy)
@@ -56,7 +58,7 @@ if '1' in answer:
                         print('Test failed!')
                         sys.exit()
                     print()
-                    
+                
 
 # Test 2 - H/S matrix with fock
 if '2' in answer:

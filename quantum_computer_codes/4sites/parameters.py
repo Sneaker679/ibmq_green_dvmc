@@ -5,11 +5,11 @@ force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 
 N = 4 # Number of sites.
-N_min = 2 # Number of sites the site with the least neighbors can interact with.
+N_min = 3 # Number of sites the site with the least neighbors can interact with.
 
 t = -1
 U = 4
-mu = U/2
+mu = 0
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'

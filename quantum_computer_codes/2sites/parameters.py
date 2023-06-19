@@ -9,7 +9,7 @@ N_min = 1 # Number of sites the site with the least neighbors can interact with.
 
 t = -1
 U = 4
-mu = U/2
+mu = 1
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
@@ -125,7 +125,6 @@ else:
         model = pyqcm.lattice_model('custom', clus, ((1000,0,0),))
         model.interaction_operator('U')
         model.hopping_operator('t', (1,0,0), -1)  # NN hopping
-        model.hopping_operator('t', (0,1,0), -1)  # NN hopping
         #########################
 
 
@@ -151,8 +150,6 @@ else:
     circuit.x(2)
     circuit.x(0)
     circuit.cx(1,3)
-    circuit.cx(1,2)
-    circuit.cz(1,2)
     circuit.swap(1,2)
     #################################
 

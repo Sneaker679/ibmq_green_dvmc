@@ -3,7 +3,7 @@ import numpy as np
 import parameters as M
 from parameters import t,U,mu,N
 
-sec = f'R0:N{N}:S0'
+sec = f'R0:N2:S0'
 M.model.set_target_sectors([sec])
 M.model.set_parameters(f"""
 t={-t}

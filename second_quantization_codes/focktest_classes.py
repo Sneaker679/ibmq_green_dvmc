@@ -5,7 +5,7 @@ import copy
 import time
 import sys
 
-np.set_printoptions(linewidth = 1000)
+np.set_printoptions(linewidth = 10000,threshold=sys.maxsize)
 
 def excitdef_reader(document_name):
 
@@ -75,6 +75,10 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     gs_block = hubbard_output[2]
     blocks = hubbard_output[3]
     gs_numerical_state = hubbard_output[4]
+   
+    if i==3 and j==3 and m==13 and n==13:
+        print('gs',[x.num for x in gs_block])
+        print()
     
     lines_doc = excitdef_reader(excit_document)
 
@@ -82,6 +86,24 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     ex_state_right = ex_state(type,j,n,spin_right,gs_block,gs_numerical_state,lines_doc)
     
     scalar = []
+    
+    if i==3 and j==3 and m==13 and n==13:
+        print('left',[x[0].num for x in ex_state_left])
+        print()
+        print('right',[x[0].num for x in ex_state_right])
+        print()
+
+        k=0
+        for index1,ele1 in enumerate(blocks_matrix):
+            print('N=',k)
+            for index2,ele2 in enumerate(ele1):
+                print([x.num for x in blocks[index1][index2]])
+                print([x.fock for x in blocks[index1][index2]])
+                print(ele2)
+            print()
+            k += 1
+    
+
     if ex_state_right and ex_state_left:
         for state_left in ex_state_left:
             for state_right in ex_state_right:
@@ -110,7 +132,7 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     else:
         return 0
 
-def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu):
+def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu,save='Y'):
 
     N_exc = 2 + N_min*(N_min+1)
 
@@ -127,9 +149,16 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu):
                     row_num = N * n + j
                     if column_num - row_num >= 0:
                         excitation_matrix[row_num,column_num] = element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document)
-
+    
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix    
 
+    if save.upper() == 'Y':
+        if type[1] == '+':
+            identifier = '_AC'
+        if type[1] == '-':
+            identifier = '_CA'
+        np.save(type[0]+identifier,excitation_matrix)
+    
     return excitation_matrix
 
 
@@ -143,24 +172,30 @@ if __name__ == "__main__":
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
     N = 4
-    N_min = 2 
+    N_min = 2
 
     # Spins
     spin_left = '+'
     spin_right = '+'
 
     # Values
+    '''
+    t = np.matrix([
+        [0,1],
+        [1,0]
+    ])
+    '''
     t = np.matrix([
         [0,1,1,0],
         [1,0,0,1],
         [1,0,0,1],
         [0,1,1,0]
-    ]) 
+    ])
     U = 4
     mu = 2
 
     # Excitation document name
-    excit_doc = 'excitation4sites.def'
+    excit_doc = f'excitation{N}sites.def'
 
     print(type+':')
     print(matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu))
