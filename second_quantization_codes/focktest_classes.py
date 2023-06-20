@@ -5,7 +5,9 @@ import copy
 import time
 import sys
 
-np.set_printoptions(linewidth = 10000,threshold=sys.maxsize)
+np.set_printoptions(linewidth = 10000
+        #,threshold=sys.maxsize
+        )
 
 def excitdef_reader(document_name):
 
@@ -172,7 +174,7 @@ if __name__ == "__main__":
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
     N = 4
-    N_min = 2
+    N_min = 3
 
     # Spins
     spin_left = '+'

@@ -14,6 +14,7 @@ To run this code, you will need to install the following packages for your Pytho
 - qiskit_nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
 - pyqcm-->  (https://qcm-wed.readthedocs.io/en/latest/intro.html#installation)
 - matplotlib--> (https://matplotlib.org/stable/users/getting_started/index.html#installation-quick-start)
+- numpy--> (https://numpy.org/install/)
 
 Note that the "qcm" package is not manditory as its only purpose is to benchmark the calculations using the quantum computer.
 

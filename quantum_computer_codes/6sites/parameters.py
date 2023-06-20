@@ -4,12 +4,12 @@ use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 
-N = 4 # Number of sites.
-N_min = 3 # Number of sites the site with the least neighbors can interact with.
+N = 6 # Number of sites.
+N_min = 5 # Number of sites the site with the least neighbors can interact with.
 
 t = -1
 U = 4
-mu = 2
+mu = U/2
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
