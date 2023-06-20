@@ -2,8 +2,7 @@ import fock_class as f
 import numpy as np
 import copy
 import time
-
-np.set_printoptions(precision=2)
+import sys
 
 def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
 
@@ -27,7 +26,6 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
                 for j in range(N):
                     if not i == j and not t[i,j] == 0 :
                         for spin in ['+','-']:
-
                             new_state = copy.deepcopy(state)
                             new_state.op('destroy',i,spin)
                             new_state.op('create',j,spin)
@@ -35,8 +33,9 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
                             if not isinstance(new_state.fock,int):
                                 block_tuples.append((state,new_state))
                                 if not new_state.num in [x.num for x in block]:
-                                    new_state.sign = 1
-                                    block.append(new_state)
+                                    new_state_in_block = copy.deepcopy(new_state)
+                                    new_state_in_block.sign = 1
+                                    block.append(new_state_in_block)
 
         block_matrix = np.zeros((len(block),len(block)))
 
@@ -90,6 +89,7 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
             gs_block_matrix = block_matrix
             gs_numerical_state = numerical_states[:,0].transpose()
             gs_energy_block = min(energies)
+            gs_block_num = block_num
             if manip.lower() == 'yes':
                 gs_block = block
 
@@ -114,14 +114,6 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
         print()
 
     if manip.lower() == 'no':
-        return gs_energy,gs_numerical_state,gs_block_matrix
+        return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
-
-t=np.matrix([
-    [0,1],
-    [1,0]
-])
-a = hubbard(2,t,4,0,'no','yes')
-print(a)
-

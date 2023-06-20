@@ -187,25 +187,38 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,hamiltonian,q_circui
     excitation_matrix = np.zeros((matrix_size,matrix_size))
 
     # Caluculation of half the elements 
-    for i in range(N):
+    observables = []
+    circuits = [q_circuit] * (N * N_exc)**2
+
+    for n in range(N_exc):
         for j in range(N):
             for m in range(N_exc):
-                for n in range(N_exc): 
+                for i in range(N): 
                     """The 2 following lines represents the distribution of the calculated values in the
-                    matrix. For each i, there are (for 2 sites) 4 values of m. Thus, the first 4 columns
-                    would be for i = 1 and for 0 <= m <= 3, then the next 4 for i = 2 and for 0 <= m <= 3.
+                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
                     The same principles for the rows, but i becomes j and m becomes n."""
                     column_num = N * m + i
                     row_num = N * n + j
+                    
                     if column_num - row_num >= 0: # This is to calculate only half of the matrix.
                         observable = Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian)
                         qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
+                        observables.append(qubit_hamiltonian)
 
-                        job = pEstimator().run(q_circuit,qubit_hamiltonian)
-                        result = job.result()
-                        values = result.values 
+    job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+    result = job.result()
+    values = result.values
 
-                        excitation_matrix[row_num,column_num] = values[0]
+    # Fill matrix
+    correction = 0
+    row = 0
+    for column,value in enumerate(values):
+        column = column + correction
+        excitation_matrix[row,column] = value
+        if column == N*N_exc-1:
+            row += 1
+            correction += -N*N_exc + row
 
     # Symmetrizing the matrix
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix

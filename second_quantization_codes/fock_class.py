@@ -39,6 +39,7 @@ class Fock():
         if not type == 'create' and not type == 'destroy':
             raise Exception('The only two operators are "create" and "destroy".')        
 
+
         if not isinstance(self.fock,int):
             
             if type == 'create':

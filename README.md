@@ -61,7 +61,6 @@ To create and calculate the green function for custom systems, you will need to 
 - `excitation.def` : Make sure the excitation types there match the number of sites and the number of excitations. The number of excitations is calculated using the following formula : N_exc = 2 + N_min ( N_min + 1 ).
 
 ## TODO
-- Benchmarking of the quantum computer using the second quantization codes and its newly implemented "t" hopping matrix. Initial results are somewhat weird, needs further testing with 4 sites systems.
 - Add a code to generate excitation.def files automatically.
 - The N_min definition and implementation is wrong. For 2 sites, input N_min = 1 and for 4 sites input N_min = 3 for correct results.
 - Optimisation

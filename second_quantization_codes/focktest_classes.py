@@ -5,9 +5,7 @@ import copy
 import time
 import sys
 
-np.set_printoptions(linewidth = 10000
-        #,threshold=sys.maxsize
-        )
+np.set_printoptions(linewidth = 1000,precision=4)
 
 def excitdef_reader(document_name):
 
@@ -77,10 +75,6 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     gs_block = hubbard_output[2]
     blocks = hubbard_output[3]
     gs_numerical_state = hubbard_output[4]
-   
-    if i==3 and j==3 and m==13 and n==13:
-        print('gs',[x.num for x in gs_block])
-        print()
     
     lines_doc = excitdef_reader(excit_document)
 
@@ -89,23 +83,6 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     
     scalar = []
     
-    if i==3 and j==3 and m==13 and n==13:
-        print('left',[x[0].num for x in ex_state_left])
-        print()
-        print('right',[x[0].num for x in ex_state_right])
-        print()
-
-        k=0
-        for index1,ele1 in enumerate(blocks_matrix):
-            print('N=',k)
-            for index2,ele2 in enumerate(ele1):
-                print([x.num for x in blocks[index1][index2]])
-                print([x.fock for x in blocks[index1][index2]])
-                print(ele2)
-            print()
-            k += 1
-    
-
     if ex_state_right and ex_state_left:
         for state_left in ex_state_left:
             for state_right in ex_state_right:
@@ -163,14 +140,9 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu,save='Y'):
     
     return excitation_matrix
 
-
-'''gs_energy,gs_numerical_state,gs_block_matrix = h.hubbard(N,t,U,mu)
-blocks_matrix,blocks_num,gs_block,blocks = h.hubbard(N,t,U,mu,'yes')'''
-
-
 if __name__ == "__main__":
     # Which matrix? (H+, H-, S+ or S-.)
-    type = 'H+'
+    type = 'ALL'
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
     N = 4
@@ -193,11 +165,20 @@ if __name__ == "__main__":
         [1,0,0,1],
         [0,1,1,0]
     ])
+    
     U = 4
-    mu = 2
+    mu = 0
+    
 
     # Excitation document name
     excit_doc = f'excitation{N}sites.def'
+    generate_npy = 'Y' # 'Y' or 'N'.
 
-    print(type+':')
-    print(matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu))
+    if type.upper() == 'ALL':
+        for type_ in ['H+','H-','S+','S-']:
+            print(type_+':')
+            print(matrix(type_,excit_doc,N,N_min,spin_left,spin_right,t,U,mu,generate_npy))
+            print()
+    else:
+        print(type+':')
+        print(matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu,generate_npy))

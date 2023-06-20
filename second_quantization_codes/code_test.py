@@ -50,7 +50,7 @@ if '1' in answer:
             for U in U_values:
                 for mu in mu_values:
                     GS,E,GS_bloc_matrix = hs.hubbard(N,t,U,mu)
-                    gs_energy,gs_numerical_state,gs_block_matrix = hc.hubbard(N,t_mat,U,mu)
+                    gs_energy,gs_numerical_state,num,gs_block_matrix = hc.hubbard(N,t_mat,U,mu)
                     print(['N','t','U','mu'])
                     print([N,t,U,mu])
                     print('GS_energies: ',E == gs_energy)
