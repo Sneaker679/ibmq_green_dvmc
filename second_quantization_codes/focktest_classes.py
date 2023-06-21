@@ -111,7 +111,10 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
     else:
         return 0
 
+
 def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu,save='Y'):
+    
+    start = time.time()
 
     N_exc = 2 + N_min*(N_min+1)
 
@@ -131,6 +134,9 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu,save='Y'):
     
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix    
 
+    end = time.time()
+    print('Time:',end-start,'seconds.')
+
     if save.upper() == 'Y':
         if type[1] == '+':
             identifier = '_AC'
@@ -145,19 +151,20 @@ if __name__ == "__main__":
     type = 'ALL'
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
-    N = 4
-    N_min = 3
+    N = 2
+    N_min = 1
 
     # Spins
     spin_left = '+'
     spin_right = '+'
 
     # Values
-    '''
+    
     t = np.matrix([
         [0,1],
         [1,0]
     ])
+    
     '''
     t = np.matrix([
         [0,1,1,0],
@@ -165,9 +172,20 @@ if __name__ == "__main__":
         [1,0,0,1],
         [0,1,1,0]
     ])
-    
+    '''
+    '''
+    t = np.matrix([
+        [0,1,0,1,0,0],
+        [1,0,1,0,1,0],
+        [0,1,0,0,0,1],
+        [1,0,0,0,1,0],
+        [0,1,0,1,0,1],
+        [0,0,1,0,1,0]
+    ])
+    '''
+
     U = 4
-    mu = 0
+    mu = 2
     
 
     # Excitation document name
