@@ -48,7 +48,7 @@ result = job.result()
 values = result.values
 omega = values[0]
 #######################################
-
+omega = -7.0
 
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)
@@ -144,6 +144,7 @@ def dvmc_spectrum(Omega,verbose=1):
   print("condition number S_CA = %8.6f"%(cond_num_CA))
   
   for i in range(len(SV_AC)):
+    print(SV_AC_tmp[i], SV_CA_tmp[i])
     if(SV_AC_tmp[i]<tol and not break_AC):
       nc_AC = i
       break_AC = True

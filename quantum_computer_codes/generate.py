@@ -1,8 +1,14 @@
 #Packages----------------------------------------------------
-
 import numpy as np
 import matplotlib.pyplot as plt
-from parameters import *
+import copy
+import time
+import sys,os
+if len(sys.argv) == 2:
+    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy
+from hamiltonian_circuit import Hamiltonian, circuit
 
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
@@ -20,15 +26,14 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     SquareLattice,
     TriangularLattice,
 )
-import sys
-import copy
-import time
 
 #------------------------------------------------------------
 
 # Print options
 np.set_printoptions(linewidth= 10000)
 
+# Excitation file location
+file_location = './excitation_files/'
 
 # Creation, destruction and count(n) operators using qiskit
 
@@ -69,8 +74,13 @@ def destroy(N,site,spin):
 """The check operator is simply the name of the operator 'n', which checks if an
 electron is there or not. As per qiskit's FermionicOp class, multiplication of 
 operators must be written using @."""
-def check(N,site,spin):
-    return create(N,site,spin) @ destroy(N,site,spin)
+def check(type,N,site,spin):
+    if not type == 'presence' and not type == 'absence':
+        raise Exception('Type must be either "presence" or "absence".')
+    if type == 'presence':
+        return create(N,site,spin) @ destroy(N,site,spin)
+    if type == 'absence':
+        return destroy(N,site,spin) @ create(N,site,spin)
 
 
 # Calculation of any excited state
@@ -78,9 +88,8 @@ def check(N,site,spin):
 """This function reads a excitation.def file and converts it into a easily manipulated object.
 In this case, said object is a list. Each items of this list are the individual lines. 
 These items are also themselves lists, each containing in this same order: t ri ra rb."""
-def excitdef_reader(document_name):
-
-    file = open(document_name).read()
+def excitdef_reader(document_name,file_location=''):
+    file = open(file_location+document_name).read()
     lines_doc = file.split('\n')[5:-1]
     for line_number in range(len(lines_doc)):
         lines_doc[line_number] = lines_doc[line_number].split() 
@@ -112,8 +121,10 @@ def ex_operators(side,type,i,m,spin,lines_doc):
     In the last example, the c should be a c_dagger."""
     if type[1] == '+':
         c_operator = create(N,i,spin)
+        check_operator = 'presence'
     if type[1] == '-':
         c_operator = destroy(N,i,spin)
+        check_operator = 'absence'
     
     """For the spin defined, we also define its opposite."""
     if spin == '+':
@@ -124,15 +135,21 @@ def ex_operators(side,type,i,m,spin,lines_doc):
     """For each definition of an excited state, we define the operation to be performed."""
     if m == 0:
         ex_ops = c_operator
-    elif m == 1:
-        ex_ops = c_operator @ check(N,i,spin_op)
     else:
-        """Here, we fetch the values of ra and rb from the lines_doc we inputed in the function."""
         lines = [values for values in lines_doc if values[1] == i]
+        t = lines[m][0]
+
+        if t == 1:
+            ex_ops = c_operator @ check(check_operator,N,i,spin_op)
+        
+        """Here, we fetch the values of ra and rb from the lines_doc we inputed in the function."""
         ra = lines[m][2]
         rb = lines[m][3]
 
-        ex_ops = c_operator @ check(N,ra,spin_op) @ check(N,rb,spin)
+        if t == 3:
+            ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin_op)
+        else:
+            ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin)
 
     return ex_ops
 
@@ -149,7 +166,7 @@ N is the number of sites in total.
 def Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian):
     
     """The excitation.def file in its list form is imported."""
-    lines_doc = excitdef_reader(excit_document)
+    lines_doc = excitdef_reader(excit_document,file_location)
 
     """We use the previously defined functions to calculate, for example, |e_right> and <e_left|.
     Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket."""
@@ -174,13 +191,15 @@ hamiltonian is the hamiltonian to use for the calculation.
 save is for if we wish to save the matrices we calculate as a .npy file.
 """
 
-def matrix(type,excit_document,N,N_min,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
-    
-    # Timer start
-    start = time.time()
+def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
-    N_exc = 2 + N_min*(N_min+1)
+    lines_doc = excitdef_reader(excit_document,file_location)
+    lines = [values for values in lines_doc if values[1] == 0]
+    N_exc = len(lines)
+
+    # Timer start
+    start = time.time() 
 
     # Initializing matrix
     matrix_size = N * N_exc
@@ -231,7 +250,11 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,hamiltonian,q_circui
             identifier = '_AC'
         if type[1] == '-':
             identifier = '_CA'
-        np.save(type[0]+identifier,excitation_matrix)
+        #np.save(type[0]+identifier,excitation_matrix)
+        if len(sys.argv) == 2: 
+            np.save(os.path.join('examples/'+sys.argv[1]+'sites/matrices_npy',type[0]+identifier),excitation_matrix)
+        else:
+            np.save(os.path.join('matrices_npy',type[0]+identifier),excitation_matrix)
 
     return excitation_matrix
 
@@ -239,8 +262,8 @@ def matrix(type,excit_document,N,N_min,spin_left,spin_right,hamiltonian,q_circui
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
         print(type+':')
-        print(matrix(type,excit_document,N,N_min,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+        print(matrix(type,excit_document,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
         print()
 else:
     print(generate_matrix+':')
-    print(matrix(generate_matrix,excit_document,N,N_min,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+    print(matrix(generate_matrix,excit_document,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))

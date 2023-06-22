@@ -19,25 +19,30 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 
+import copy
+import time
+import numpy as np
+from numpy import linalg as la
+import matplotlib.pyplot as plt
+import sys, os, re
+if len(sys.argv) == 2:
+    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+    outputDir='./examples/'+sys.argv[1]+'sites/matrices_npy/'
+else:
+   outputDir='./matrices_npy/'
+
+from parameters import N,U
+from hamiltonian_circuit import Hamiltonian, circuit
+
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
 from qiskit import QuantumCircuit,QuantumRegister
 from qiskit import transpile
-from parameters import N,U,Hamiltonian,circuit
-import numpy as np
 from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
-from numpy import linalg as la
-import sys, os, re
 from ctypes import cdll, c_int, c_double
-import copy
-
-import time
-
-import matplotlib
-import matplotlib.pyplot as plt
 
 
 ### CALCULATING GROUND STATE ENERGY ###
@@ -48,7 +53,6 @@ result = job.result()
 values = result.values
 omega = values[0]
 #######################################
-
 
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)
@@ -61,7 +65,6 @@ trans_invariant = False
 add_noise = False
 qz_decomp = False
 
-outputDir='./'
 spectrumparaFileName='spectrumpara.def'
 verbose_read = 1
 
@@ -253,8 +256,6 @@ def dvmc_spectrum(Omega,verbose=1):
   e = time.time()
   print("Execution time : ", e-stot)
 
-  # local dos
-
   '''
   # get dos
   dos = np.zeros([3,Nw], dtype='float')
@@ -294,7 +295,10 @@ def dvmc_spectrum(Omega,verbose=1):
   ax.set_xlim(-10,10)
 
   #matplotlib.use('Agg')
-  plt.savefig('ibmq_spectrum.pdf')
+  if len(sys.argv) == 2:
+    plt.savefig('./examples/'+sys.argv[1]+'sites/ibmq_spectrum.pdf')
+  else:
+    plt.savefig('ibmq_spectrum.pdf')
   #plt.show()
   
   sys.exit()  

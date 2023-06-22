@@ -38,8 +38,14 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
 
     if type[1] == '+':
         c_operator = 'create'
+        n1_operator = 'create'
+        n2_operator = 'destroy'
     if type[1] == '-':
         c_operator = 'destroy'
+        n1_operator = 'destroy'
+        n2_operator = 'create'
+        #n1_operator = 'create'
+        #n2_operator = 'destroy'
     
     if spin == '+':
         spin_op = '-'
@@ -48,21 +54,30 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
     
     for state in excited_block:
         lines = [x for x in lines_doc if x[1] == i] 
+        t = lines[m][0]
+        
         ra = lines[m][2]
         rb = lines[m][3]
 
         if m == 0:
             state[0].op(c_operator,i,spin)
-        elif m == 1:
-            state[0].op('destroy',ra,spin_op)
-            state[0].op('create',ra,spin_op)
-            state[0].op(c_operator,i,spin)
         else:
-            state[0].op('destroy',ra,spin_op)
-            state[0].op('create',ra,spin_op)
-            state[0].op('destroy',rb,spin)
-            state[0].op('create',rb,spin)
-            state[0].op(c_operator,i,spin)
+            if t == 1:
+                state[0].op(n2_operator,ra,spin_op)
+                state[0].op(n1_operator,ra,spin_op)
+                state[0].op(c_operator,i,spin)
+            elif t == 3:
+                state[0].op(n2_operator,ra,spin_op)
+                state[0].op(n1_operator,ra,spin_op)
+                state[0].op(n2_operator,rb,spin_op)
+                state[0].op(n1_operator,rb,spin_op)
+                state[0].op(c_operator,i,spin)
+            else:
+                state[0].op(n2_operator,ra,spin_op)
+                state[0].op(n1_operator,ra,spin_op)
+                state[0].op(n2_operator,rb,spin)
+                state[0].op(n1_operator,rb,spin)
+                state[0].op(c_operator,i,spin)
 
     excited_block[:] = [state for state in excited_block if not isinstance(state[0].fock,int)]
     
@@ -112,11 +127,13 @@ def element(type,N,i,j,m,n,spin_left,spin_right,hubbard_output,excit_document):
         return 0
 
 
-def matrix(type,excit_document,N,N_min,spin_left,spin_right,t,U,mu,save='Y'):
+def matrix(type,excit_document,N,spin_left,spin_right,t,U,mu,save='Y'):
     
+    # This is the total possible number of excitation for each site, as explained by the paper.
+    lines_doc = excitdef_reader(excit_document)
+    lines = [values for values in lines_doc if values[1] == 0]
+    N_exc = len(lines)
     start = time.time()
-
-    N_exc = 2 + N_min*(N_min+1)
 
     matrix_size = N * N_exc
     excitation_matrix = np.zeros((matrix_size,matrix_size))
@@ -152,14 +169,13 @@ if __name__ == "__main__":
 
     # Number of sites in total and number of neighbors the site with the least neighbor has??
     N = 2
-    N_min = 1
 
     # Spins
     spin_left = '+'
     spin_right = '+'
 
     # Values
-    
+     
     t = np.matrix([
         [0,1],
         [1,0]
@@ -185,7 +201,7 @@ if __name__ == "__main__":
     '''
 
     U = 4
-    mu = 2
+    mu = 3
     
 
     # Excitation document name
@@ -195,8 +211,8 @@ if __name__ == "__main__":
     if type.upper() == 'ALL':
         for type_ in ['H+','H-','S+','S-']:
             print(type_+':')
-            print(matrix(type_,excit_doc,N,N_min,spin_left,spin_right,t,U,mu,generate_npy))
+            print(matrix(type_,excit_doc,N,spin_left,spin_right,t,U,mu,generate_npy))
             print()
     else:
         print(type+':')
-        print(matrix(type,excit_doc,N,N_min,spin_left,spin_right,t,U,mu,generate_npy))
+        print(matrix(type,excit_doc,N,spin_left,spin_right,t,U,mu,generate_npy))

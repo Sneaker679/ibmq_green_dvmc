@@ -1,32 +1,18 @@
-# Parameters
-
-use_qcm = 'Y' # 'Y' or 'N'.
-force_custom_lattice = 'N'
-force_custom_circuit = 'N'
-
-N = 2 # Number of sites.
-N_min = 1 # Number of sites the site with the least neighbors can interact with.
-
-t = -1
-U = 4
-mu = 1
-
-spin_left = '+' # Either '+' or '-'.
-spin_right = '+'
-
-excit_document = f'excitation{N}sites.def'
-generate_npy = 'Y' 
-generate_matrix = 'ALL' # Should be left on 'ALL'.
-
-
 #################### LATTICE SETUP ####################
-import sys
-import numpy as np
+import sys,os
 import matplotlib.pyplot as plt
+import numpy as np
+if len(sys.argv) == 2:
+    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+
+from parameters import *
+
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
+from qiskit_nature.second_q.problems import EigenstateResult,LatticeModelProblem
+from qiskit_nature.second_q.algorithms import GroundStateEigensolver
 from qiskit import QuantumCircuit,QuantumRegister
 from qiskit import transpile
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
@@ -43,12 +29,9 @@ if use_qcm == 'Y':
     import pyqcm
 
 # Find number of rows and columns of lattice
-factors = []
-for i in range(1, N + 1):
-       if N % i == 0:
-           factors.append(i)
-
 if not len(factors) == 2 and force_custom_lattice == 'N':
+    print('Using automatic lattice...')
+
     if len(factors) % 2 == 0:
         num_columns = factors[int(len(factors)/2 - 1)]
         num_rows = factors[int(len(factors)/2)]
@@ -71,7 +54,6 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
         onsite_interaction = U,
     ).second_q_op()
 
-
     if use_qcm == 'Y':
         
         # QCM lattice.
@@ -88,22 +70,12 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
         model.interaction_operator('U')
         model.hopping_operator('t', (1,0,0), -1)  # NN hopping
         model.hopping_operator('t', (0,1,0), -1)  # NN hopping
-
 else:
     if len(factors) == 2:
         print('Number of sites is a prime number.')
     print('Using custom lattice...')
-    print()
-
-    ### Custom qiskit lattice ### 
-    # Remove the (#)s to show the lattice using matplotlib.
-    boundary_condition = BoundaryCondition.OPEN
-    lattice = LineLattice(num_nodes = N, boundary_condition = boundary_condition)
-    #lattice.draw()
-    #plt.show()
-    ############################
-
-    # Don't change. Initializing the Hubbard Hamiltonian using the lattice.
+    
+    # The lattice here has been initialized in parameters.py
     Hamiltonian = FermiHubbardModel(
         lattice.uniform_parameters(
             uniform_interaction = t,
@@ -112,48 +84,20 @@ else:
         onsite_interaction = U,
     ).second_q_op()
     
-    if use_qcm == 'Y':
-        
-        ### Custom QCM lattice.###
-        #Input the coordinates of the sites as tuples in "clus_coordinates" (3 dimensional space).
-        # You may also need to add "hopping_operator"s depending on your structure.
-        CM = pyqcm.cluster_model(N)
-
-        clus_coordinates = ((0,0,0),(1,0,0))
-
-        clus = pyqcm.cluster(CM,clus_coordinates)
-        model = pyqcm.lattice_model('custom', clus, ((1000,0,0),))
-        model.interaction_operator('U')
-        model.hopping_operator('t', (1,0,0), -1)  # NN hopping
-        #########################
-
 
 #################### CIRCUIT SETUP ####################
 
-if force_custom_circuit.upper() == 'N':
+if force_custom_circuit.upper() == 'N': 
+    print('Using exact diagonalisation state...')
+
     vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix())[1][:,0].real.tolist()
     
     q = QuantumRegister(2*N)
     circuit = QuantumCircuit(q)
     circuit.initialize(vec,q)
     circuit.draw()
+    #print(circuit)
 
 else:
-    circuit = QuantumCircuit(2*N)
-    
-    ### INPUT CUSTOM CIRCUIT HERE ###
-    theta = 2*1.178097245
-    circuit.ry(theta, 2)
-    circuit.h(0)
-    circuit.cx(2,3)
-    circuit.cx(0,1)
-    circuit.x(2)
-    circuit.x(0)
-    circuit.cx(1,3)
-    circuit.swap(1,2)
-    #################################
-
-    circuit.draw('mpl')
-    #print(circuit)
-    #print()
-    #plt.show()
+    print('Using custom circuit...')
+print()

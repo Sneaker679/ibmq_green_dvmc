@@ -68,10 +68,27 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
                     for spin in ['+','-']:
                         new_state.op('destroy',site,spin)
                         new_state.op('create',site,spin)
-                    
+                                        
                     if not isinstance(new_state.fock,int):
                         block_matrix[index,index] += U
-               
+                    '''                    
+                    new_state = f.Fock(N,num)
+                    new_state.op('destroy',site,'+')                    
+                    new_state.op('create',site,'+')
+
+                    if not isinstance(new_state.fock,int):
+                        block_matrix[index,index] += -0.5*U
+
+                    new_state = f.Fock(N,num)
+                    new_state.op('destroy',site,'-')
+                    new_state.op('create',site,'-')
+
+                    if not isinstance(new_state.fock,int):
+                        block_matrix[index,index] += -0.5*U
+
+                    block_matrix[index,index] += 0.25*U
+                    '''
+
         if not mu == 0:
             for index,num in enumerate(block_num):
                 for site in range(N):
@@ -117,3 +134,10 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
         return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
+
+t = np.matrix([
+    [0,1],
+    [1,0],
+])
+
+print(hubbard(2,t,4,3))
