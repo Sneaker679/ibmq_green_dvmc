@@ -26,13 +26,11 @@ from numpy import linalg as la
 import matplotlib.pyplot as plt
 import sys, os, re
 if len(sys.argv) == 2:
-    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
-    outputDir='./examples/'+sys.argv[1]+'sites/matrices_npy/'
-else:
-   outputDir='./matrices_npy/'
+    number = sys.argv[1]
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
 
-from parameters import N,U
-from hamiltonian_circuit import Hamiltonian, circuit
+from parameters import N,U,output_directory,pdf_output_directory
+from hamiltonian_circuit import omega
 
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
@@ -44,16 +42,7 @@ from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
 from ctypes import cdll, c_int, c_double
 
-
-### CALCULATING GROUND STATE ENERGY ###
-qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(Hamiltonian)
-
-job = pEstimator().run(circuit,qubit_hamiltonian)
-result = job.result()
-values = result.values
-omega = values[0]
-#######################################
-
+print('GS energy:',omega)
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)
 
@@ -64,6 +53,7 @@ Nc=N
 trans_invariant = False
 add_noise = False
 qz_decomp = False
+outputDir = output_directory
 
 spectrumparaFileName='spectrumpara.def'
 verbose_read = 1
@@ -87,7 +77,7 @@ if (len(sys.argv)>=6):
   pct_filter=float(sys.argv[5])  
 
 
-def dvmc_spectrum(Omega,verbose=1):
+def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
 
   sum_rule_max = sum_rule_max_ok
   sum_rule_min = sum_rule_min_ok
@@ -104,10 +94,16 @@ def dvmc_spectrum(Omega,verbose=1):
 
   stot = time.time()
   #s = time.time()
-  S_CA = np.load(outputDir+'S_CA.npy')
-  S_AC = np.load(outputDir+'S_AC.npy')
-  H_CA = np.load(outputDir+'H_CA.npy')
-  H_AC = np.load(outputDir+'H_AC.npy')
+  if fock_benchmarking == 'Y':
+      S_CA = np.load(os.path.join(outputDir,'S_CA_fock.npy'))
+      S_AC = np.load(os.path.join(outputDir,'S_AC_fock.npy'))
+      H_CA = np.load(os.path.join(outputDir,'H_CA_fock.npy'))
+      H_AC = np.load(os.path.join(outputDir,'H_AC_fock.npy'))
+  else:
+      S_CA = np.load(os.path.join(outputDir,'S_CA.npy'))
+      S_AC = np.load(os.path.join(outputDir,'S_AC.npy'))
+      H_CA = np.load(os.path.join(outputDir,'H_CA.npy'))
+      H_AC = np.load(os.path.join(outputDir,'H_AC.npy'))
   
   spectrum_hole = np.zeros([Nc,Nc,Nw])
   spectrum_elec = np.zeros([Nc,Nc,Nw])
@@ -283,7 +279,14 @@ def dvmc_spectrum(Omega,verbose=1):
     ax.plot([w_.min(),w_.max()],[ii*shift,ii*shift],c='black')
   
   # local dos
-  file_dos   = open(outputDir+'local_dos.dat','w')
+  if fock_benchmarking == 'Y':
+    dos_name = 'local_dos_fock.dat'
+    file_name = 'fock_spectrum.pdf'
+  else:
+    dos_name = 'local_dos.dat'
+    file_name = 'ibmq_spectrum.pdf'
+
+  file_dos   = open(os.path.join(outputDir,dos_name),'w')
   for ii in range(Nw):
     file_dos.write('% 7.6f   '  %w_[ii])
     for kk in range(Nc):
@@ -295,13 +298,10 @@ def dvmc_spectrum(Omega,verbose=1):
   ax.set_xlim(-10,10)
 
   #matplotlib.use('Agg')
-  if len(sys.argv) == 2:
-    plt.savefig('./examples/'+sys.argv[1]+'sites/ibmq_spectrum.pdf')
-  else:
-    plt.savefig('ibmq_spectrum.pdf')
+  plt.savefig(os.path.join(pdf_output_directory,file_name))
   #plt.show()
   
   sys.exit()  
 
-
-dvmc_spectrum(omega,verbose_read)
+if __name__ == '__main__':
+    dvmc_spectrum(omega,verbose_read)

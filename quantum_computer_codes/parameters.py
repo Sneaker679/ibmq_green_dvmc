@@ -2,13 +2,13 @@
 
 use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
-force_custom_circuit = 'Y'
+force_custom_circuit = 'N'
 
-N = 2 # Number of sites.
+N = 4 # Number of sites.
 
 t = -1
 U = 4
-mu = U/2
+mu = 0
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
@@ -30,6 +30,7 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     SquareLattice,
     TriangularLattice,
 )
+import numpy as np
 if use_qcm == 'Y':
     import pyqcm
 #########################################
@@ -68,6 +69,17 @@ if (use_qcm == 'Y' and force_custom_lattice == 'Y') or (use_qcm == 'Y' and len(f
     #####################################
 
 
+#########################################
+##### INPUT CUSTOM t HOPPING MATRIX #####
+#########################################
+t_fock = np.matrix([
+    [0,t],
+    [t,0]
+])
+#########################################
+
+
+
 ####################################
 #### INPUT CUSTOM CIRCUIT HERE #####
 ####################################
@@ -88,4 +100,22 @@ circuit.cx(1,2)
 circuit.cz(1,2)
 circuit.swap(1,2)
 circuit.draw()
+####################################
+
+
+############ FILE PATHS ############
+import sys,os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'output'))
+sys.path.append(os.path.dirname(__file__))
+
+output_directory = os.path.join(os.path.dirname(__file__),'output')
+pdf_output_directory = os.path.dirname(__file__)
+
+head_tail = os.path.split(os.path.dirname(__file__))
+while not head_tail[1] == 'quantum_computer_codes':
+    head_tail = os.path.split(head_tail[0])
+main_folder = os.path.join(head_tail[0],head_tail[1])
+
+excitation_directory = os.path.join(main_folder,'excitation_files')
 ####################################

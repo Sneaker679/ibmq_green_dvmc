@@ -1,35 +1,34 @@
 import pyqcm
-import sys
+import sys,os
 if len(sys.argv) == 2:
-    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+    number = sys.argv[1]
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
 
-from parameters import N,t,U,mu
+from parameters import N,t,U,mu,output_directory,pdf_output_directory
 from hamiltonian_circuit import model
 
 import numpy as np
 
-sec = f'R0:N{N}:S0'
+sec = 'R0:N0:S0'
+for sectors in range(2*N):
+    sectors += 1
+    if sectors % 2 == 0:
+        sec += f'/R0:N{sectors}:S0'
+
 model.set_target_sectors([sec])
 model.set_parameters(f"""
 t={-t}
 U = {U}
 mu = {mu}
 """)
+
 I = pyqcm.model_instance(model)
-  
+
 print(I.ground_state())
-
-
-if len(sys.argv) == 2:
-    result = I.cluster_spectral_function(file='./examples/'+sys.argv[1]+'sites/qcm_spectrum.pdf',eta=0.1,wmax=15)
-else:
-    result = I.cluster_spectral_function(file='qcm_spectrum.pdf',eta=0.1,wmax=15)
+result = I.cluster_spectral_function(file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15)
 
 # local dos
-if len(sys.argv) == 2:
-    file_dos_qcm   = open('examples/'+sys.argv[1]+'sites/matrices_npy/local_dos_qcm.dat','w')
-else:
-    file_dos_qcm   = open('matrices_npy/local_dos_qcm.dat','w')
+file_dos_qcm   = open(os.path.join(output_directory,'local_dos_qcm.dat'),'w')
 w_ = result[0]
 local_dos = result[1]
 for ii in range(len(w_)):

@@ -134,10 +134,3 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no'):
         return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
-
-t = np.matrix([
-    [0,1],
-    [1,0],
-])
-
-print(hubbard(2,t,4,3))

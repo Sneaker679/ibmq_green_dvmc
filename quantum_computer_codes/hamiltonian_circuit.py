@@ -70,6 +70,23 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
         model.interaction_operator('U')
         model.hopping_operator('t', (1,0,0), -1)  # NN hopping
         model.hopping_operator('t', (0,1,0), -1)  # NN hopping
+    
+    # Automatic Fock hopping matrix
+    lattice_fock = []
+    for row in range(num_rows):
+        for column in range(num_columns):
+            lattice_fock.append(np.matrix([row,column]))
+    t_fock = np.zeros((N,N))
+    for index1,site1 in enumerate(lattice_fock):
+        for index2,site2 in enumerate(lattice_fock):
+            hop = np.subtract(site1,site2)
+            if (np.array_equal(hop,np.matrix([1,0]))
+                or np.array_equal(hop,np.matrix([-1,0]))
+                or np.array_equal(hop,np.matrix([0,1]))
+                or np.array_equal(hop,np.matrix([0,-1]))):
+
+                t_fock[index1,index2] = t
+
 else:
     if len(factors) == 2:
         print('Number of sites is a prime number.')
@@ -101,3 +118,15 @@ if force_custom_circuit.upper() == 'N':
 else:
     print('Using custom circuit...')
 print()
+#######################################################
+
+
+########### CALCULATING GROUND STATE ENERGY ###########
+qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(Hamiltonian)
+
+job = pEstimator().run(circuit,qubit_hamiltonian)
+result = job.result()
+values = result.values
+omega = values[0]
+#######################################################
+

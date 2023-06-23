@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import time
+
 import sys,os
 if len(sys.argv) == 2:
-    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+    number = sys.argv[1]
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excitation_directory
 from hamiltonian_circuit import Hamiltonian, circuit
 
 from qiskit.quantum_info import Pauli,Operator
@@ -32,8 +34,6 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
 # Print options
 np.set_printoptions(linewidth= 10000)
 
-# Excitation file location
-file_location = './excitation_files/'
 
 # Creation, destruction and count(n) operators using qiskit
 
@@ -89,13 +89,14 @@ def check(type,N,site,spin):
 In this case, said object is a list. Each items of this list are the individual lines. 
 These items are also themselves lists, each containing in this same order: t ri ra rb."""
 def excitdef_reader(document_name,file_location=''):
-    file = open(file_location+document_name).read()
+    file = open(os.path.join(file_location,document_name)).read()
     lines_doc = file.split('\n')[5:-1]
     for line_number in range(len(lines_doc)):
         lines_doc[line_number] = lines_doc[line_number].split() 
         lines_doc[line_number] = [eval(number) for number in lines_doc[line_number]]
     
     return lines_doc
+
 
 """This function calculates the product of the operators associated with an exited state.
 It is important to note that this doesn't calculate the product of those operators with the GS.
@@ -138,19 +139,17 @@ def ex_operators(side,type,i,m,spin,lines_doc):
     else:
         lines = [values for values in lines_doc if values[1] == i]
         t = lines[m][0]
-
-        if t == 1:
-            ex_ops = c_operator @ check(check_operator,N,i,spin_op)
         
         """Here, we fetch the values of ra and rb from the lines_doc we inputed in the function."""
         ra = lines[m][2]
         rb = lines[m][3]
 
-        if t == 3:
+        if t == 1:
+            ex_ops = c_operator @ check(check_operator,N,ra,spin_op)
+        elif t == 3:
             ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin_op)
         else:
             ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin)
-
     return ex_ops
 
 
@@ -166,8 +165,8 @@ N is the number of sites in total.
 def Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian):
     
     """The excitation.def file in its list form is imported."""
-    lines_doc = excitdef_reader(excit_document,file_location)
-
+    lines_doc = excitdef_reader(excit_document,excitation_directory)
+    
     """We use the previously defined functions to calculate, for example, |e_right> and <e_left|.
     Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket."""
     ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc).transpose().conjugate()
@@ -178,7 +177,6 @@ def Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian):
         return ex_op_left @ hamiltonian @ ex_op_right
     if type[0] == 'S':
         return ex_op_left @ ex_op_right
-
 
 
 # Calculation of the entire matrix using the quantum computer
@@ -194,7 +192,7 @@ save is for if we wish to save the matrices we calculate as a .npy file.
 def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
-    lines_doc = excitdef_reader(excit_document,file_location)
+    lines_doc = excitdef_reader(excit_document,excitation_directory)
     lines = [values for values in lines_doc if values[1] == 0]
     N_exc = len(lines)
 
@@ -224,7 +222,7 @@ def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save
                         observable = Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian)
                         qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
                         observables.append(qubit_hamiltonian)
-
+    
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     result = job.result()
     values = result.values
@@ -250,11 +248,8 @@ def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save
             identifier = '_AC'
         if type[1] == '-':
             identifier = '_CA'
-        #np.save(type[0]+identifier,excitation_matrix)
-        if len(sys.argv) == 2: 
-            np.save(os.path.join('examples/'+sys.argv[1]+'sites/matrices_npy',type[0]+identifier),excitation_matrix)
-        else:
-            np.save(os.path.join('matrices_npy',type[0]+identifier),excitation_matrix)
+
+        np.save(os.path.join(output_directory,type[0]+identifier),excitation_matrix)
 
     return excitation_matrix
 
