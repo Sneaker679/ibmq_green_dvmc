@@ -25,7 +25,7 @@ This code is meant to calculate the Green Function for a specified system of low
 The code itself is accompanied by a few supplementary benchmarks codes. These benchmark codes come in two types : benchmarks that use a custom second quantization base implementation, and benchmarks that use the "qcm" package. The usage of those benchmarks is explained in the following section.
 
 ## How it works
-The primary use of this code is to calculate the Green Function. I will walktrough you in calculating it using the codes in `quantum_computer_codes/`
+The primary use of this code is to calculate the Green Function. I will walktrough you in calculating it using the codes in `quantum_computer_codes/`.
 
 All the files located in `quantum_computer_codes/` are useful to the calculation of the Green Function for any systems. Here is the uses of each individual files in this folder.
 
