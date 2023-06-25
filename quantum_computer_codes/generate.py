@@ -1,17 +1,9 @@
-#Packages----------------------------------------------------
+### Packages ################################################
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import time
-
 import sys,os
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
-
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excitation_directory
-from hamiltonian_circuit import Hamiltonian, circuit
-
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -29,13 +21,20 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     TriangularLattice,
 )
 
-#------------------------------------------------------------
+### Fetch parameters.py and hamiltonian_circuit.py ##########
+if len(sys.argv) == 2:
+    number = sys.argv[1]
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
+
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excitation_directory
+from hamiltonian_circuit import Hamiltonian, circuit
+from excitdef_reader import excitdef_reader
 
 # Print options
 np.set_printoptions(linewidth= 10000)
 
-
-# Creation, destruction and count(n) operators using qiskit
+### FUNCTIONS ###############################################
+## Creation, destruction and check(n and n_dag) operators using qiskit
 
 """
 N is the number of sites in total.
@@ -73,7 +72,8 @@ def destroy(N,site,spin):
 
 """The check operator is simply the name of the operator 'n', which checks if an
 electron is there or not. As per qiskit's FermionicOp class, multiplication of 
-operators must be written using @."""
+operators must be written using @. The check operator has 2 variants for if we are
+checking for the presence or absence or a fermion."""
 def check(type,N,site,spin):
     if not type == 'presence' and not type == 'absence':
         raise Exception('Type must be either "presence" or "absence".')
@@ -83,22 +83,8 @@ def check(type,N,site,spin):
         return destroy(N,site,spin) @ create(N,site,spin)
 
 
-# Calculation of any excited state
-
-"""This function reads a excitation.def file and converts it into a easily manipulated object.
-In this case, said object is a list. Each items of this list are the individual lines. 
-These items are also themselves lists, each containing in this same order: t ri ra rb."""
-def excitdef_reader(document_name,file_location=''):
-    file = open(os.path.join(file_location,document_name)).read()
-    lines_doc = file.split('\n')[5:-1]
-    for line_number in range(len(lines_doc)):
-        lines_doc[line_number] = lines_doc[line_number].split() 
-        lines_doc[line_number] = [eval(number) for number in lines_doc[line_number]]
-    
-    return lines_doc
-
-
-"""This function calculates the product of the operators associated with an exited state.
+## Calculation of any excited state
+"""This function calculates the product of the operators associated with one exited state.
 It is important to note that this doesn't calculate the product of those operators with the GS.
 This task is for the quantum computer."""
 def ex_operators(side,type,i,m,spin,lines_doc):
@@ -118,8 +104,8 @@ def ex_operators(side,type,i,m,spin,lines_doc):
     if spin not in valid_spin:
         raise Exception('Spin has to be any one of these:',valid_spin,'.')
 
-    """This code block specifies the 'c' operator to be used in, for example, |e> = cnn|GS>.
-    In the last example, the c should be a c_dagger."""
+    """This code block specifies the 'c' operator and 'n' operator to be used in, for example, |e> = cnn|GS>.
+    In the last example, the c should be a c_dagger and check_operator should be a standard 'presence' operator."""
     if type[1] == '+':
         c_operator = create(N,i,spin)
         check_operator = 'presence'
@@ -156,21 +142,9 @@ def ex_operators(side,type,i,m,spin,lines_doc):
 """This is the function that calculates the observable to be used by the quantum
 computer. """
 
-"""
-type is the type of the matrix we wish to calculate -> H+, H-, S+ or S-.
-excit_document is the document containing all the excited states we want to calculate.
-N is the number of sites in total.
-"""
-
-def Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian):
-    
-    """The excitation.def file in its list form is imported."""
-    lines_doc = excitdef_reader(excit_document,excitation_directory)
-    
-    """We use the previously defined functions to calculate, for example, |e_right> and <e_left|.
-    Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket."""
-    ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc).transpose().conjugate()
-    ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
+def Observable(type,ex_op_left,ex_op_right,hamiltonian):
+    '''Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket.'''
+    ex_op_left = ex_op_left.transpose().conjugate()
     
     """The result is the final observable to be used by the quantum computer."""
     if type[0] == 'H':
@@ -189,10 +163,9 @@ hamiltonian is the hamiltonian to use for the calculation.
 save is for if we wish to save the matrices we calculate as a .npy file.
 """
 
-def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
+def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
-    lines_doc = excitdef_reader(excit_document,excitation_directory)
     lines = [values for values in lines_doc if values[1] == 0]
     N_exc = len(lines)
 
@@ -219,15 +192,20 @@ def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save
                     row_num = N * n + j
                     
                     if column_num - row_num >= 0: # This is to calculate only half of the matrix.
-                        observable = Observable(type,excit_document,N,i,j,m,n,spin_left,spin_right,hamiltonian)
+                        ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
+                        ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
+                        observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
                         qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
                         observables.append(qubit_hamiltonian)
     
+    # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     result = job.result()
-    values = result.values
+    values = result.values # This outputs all the values of the matrix in the order they were calculated above.
+          # This order is line by line, from left to right, ommiting the elements we are not calculating.
 
     # Fill matrix
+    '''This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.'''
     correction = 0
     row = 0
     for column,value in enumerate(values):
@@ -253,12 +231,12 @@ def matrix(type,excit_document,N,spin_left,spin_right,hamiltonian,q_circuit,save
 
     return excitation_matrix
 
-
+lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
         print(type+':')
-        print(matrix(type,excit_document,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+        print(matrix(type,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
         print()
 else:
     print(generate_matrix+':')
-    print(matrix(generate_matrix,excit_document,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+    print(matrix(generate_matrix,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))

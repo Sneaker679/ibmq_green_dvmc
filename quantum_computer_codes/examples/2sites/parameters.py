@@ -2,13 +2,13 @@
 
 use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
-force_custom_circuit = 'N'
+force_custom_circuit = 'Y'
 
 N = 2 # Number of sites.
 
 t = -1
 U = 4
-mu = U/2
+mu = 2
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
@@ -118,4 +118,5 @@ while not head_tail[1] == 'quantum_computer_codes':
 main_folder = os.path.join(head_tail[0],head_tail[1])
 
 excitation_directory = os.path.join(main_folder,'excitation_files')
+sys.path.insert(0,os.path.join(main_folder,'excitation_files'))
 ####################################

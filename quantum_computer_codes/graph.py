@@ -19,19 +19,12 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 
+### Packages ################################################
 import copy
 import time
 import numpy as np
 from numpy import linalg as la
 import matplotlib.pyplot as plt
-import sys, os, re
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
-
-from parameters import N,U,output_directory,pdf_output_directory
-from hamiltonian_circuit import omega
-
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -42,7 +35,17 @@ from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
 from ctypes import cdll, c_int, c_double
 
+
+### Fetch parameters.py and hamiltonian_circuit.py
+import sys, os, re
+if len(sys.argv) == 2:
+    number = sys.argv[1]
+    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
+from parameters import N,U,output_directory,pdf_output_directory
+from hamiltonian_circuit import omega
 print('GS energy:',omega)
+
+# Declaration of variables
 full_path = os.path.realpath(__file__)
 pythonPathCode, file1 = os.path.split(full_path)
 
@@ -77,6 +80,8 @@ if (len(sys.argv)>=6):
   pct_filter=float(sys.argv[5])  
 
 
+
+# Function that calculates the green function and outputs a pdf of it.
 def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
 
   sum_rule_max = sum_rule_max_ok

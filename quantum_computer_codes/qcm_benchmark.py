@@ -1,4 +1,8 @@
+### Packages ################################################
 import pyqcm
+import numpy as np
+
+### Fetching parameters.py and hamiltonian_circuit.py #######
 import sys,os
 if len(sys.argv) == 2:
     number = sys.argv[1]
@@ -7,14 +11,15 @@ if len(sys.argv) == 2:
 from parameters import N,t,U,mu,output_directory,pdf_output_directory
 from hamiltonian_circuit import model
 
-import numpy as np
 
+# Making a list of sectors where the GS probably is.
 sec = 'R0:N0:S0'
 for sectors in range(2*N):
     sectors += 1
     if sectors % 2 == 0:
         sec += f'/R0:N{sectors}:S0'
 
+# Targeting sectors and setting parameters.
 model.set_target_sectors([sec])
 model.set_parameters(f"""
 t={-t}
@@ -22,12 +27,14 @@ U = {U}
 mu = {mu}
 """)
 
+# Calculating the Ground State Energy.
 I = pyqcm.model_instance(model)
-
 print(I.ground_state())
+
+# Generating PDF
 result = I.cluster_spectral_function(file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15)
 
-# local dos
+# Generating local dos
 file_dos_qcm   = open(os.path.join(output_directory,'local_dos_qcm.dat'),'w')
 w_ = result[0]
 local_dos = result[1]

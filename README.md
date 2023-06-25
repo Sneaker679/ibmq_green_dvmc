@@ -97,5 +97,4 @@ Don't forget the argument when you are running this code for the provided exampl
 
 ## TODO
 - Add a code to generate excitation.def files automatically.
-- Commenting all the codes, dear god.
 - Optimisation
