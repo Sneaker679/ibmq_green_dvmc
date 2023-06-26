@@ -167,7 +167,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,t_mat_,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = h.hubbard(N,t_mat_,U,mu,'yes')
+    hubbard_output = h.hubbard(N,t_mat_,U,mu,'yes',qis_not='Y')
     gs_block = hubbard_output[2]
     gs_numerical_state = hubbard_output[4]
     
@@ -212,7 +212,7 @@ else:
     
 
 # Generating graph using graph.py
-omega = h.hubbard(N,t_fock,U,mu)
+omega = h.hubbard(N,t_fock,U,mu,qis_not='Y')
 verbose_read = 1
 from graph import dvmc_spectrum
 dvmc_spectrum(omega[0],verbose_read,'Y')

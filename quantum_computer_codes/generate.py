@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import copy
 import time
 import sys,os
+from alive_progress import alive_bar
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -11,6 +12,8 @@ from qiskit_nature.second_q.operators import FermionicOp
 from qiskit import QuantumCircuit,QuantumRegister
 from qiskit import transpile
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
+from qiskit.tools.monitor import job_monitor
+from qiskit.providers.ibmq.job import IBMQJob
 from qiskit_nature.second_q.hamiltonians.lattices import (
     BoundaryCondition,
     HyperCubicLattice,
@@ -179,33 +182,38 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     # Caluculation of half the elements 
     observables = []
     circuits = [q_circuit] * (N * N_exc)**2
-
-    for n in range(N_exc):
-        for j in range(N):
-            for m in range(N_exc):
-                for i in range(N): 
-                    """The 2 following lines represents the distribution of the calculated values in the
-                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
-                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
-                    The same principles for the rows, but i becomes j and m becomes n."""
-                    column_num = N * m + i
-                    row_num = N * n + j
-                    
-                    if column_num - row_num >= 0: # This is to calculate only half of the matrix.
-                        ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
-                        ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
-                        observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
-                        qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
-                        observables.append(qubit_hamiltonian)
+    
+    with alive_bar(int((1/2)*N*N_exc*(N*N_exc+1))) as bar:
+        for n in range(N_exc):
+            for j in range(N):
+                for m in range(N_exc):
+                    for i in range(N): 
+                        """The 2 following lines represents the distribution of the calculated values in the
+                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                        The same principles for the rows, but i becomes j and m becomes n."""
+                        column_num = N * m + i
+                        row_num = N * n + j
+                        
+                        if column_num - row_num >= 0: # This is to calculate only half of the matrix.
+                            ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
+                            ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
+                            observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
+                            qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
+                            #excitation_matrix[row_num,column_num] = pEstimator().run(q_circuit,qubit_hamiltonian).result().values[0]
+                            observables.append(qubit_hamiltonian)
+                            bar()
     
     # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+    if N != 2:
+        job_monitor(job)
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
 
     # Fill matrix
-    '''This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.'''
+    # This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.
     correction = 0
     row = 0
     for column,value in enumerate(values):
@@ -214,7 +222,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
         if column == N*N_exc-1:
             row += 1
             correction += -N*N_exc + row
-
+    
     # Symmetrizing the matrix
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix
 

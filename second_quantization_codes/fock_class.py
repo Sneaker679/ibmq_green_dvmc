@@ -3,12 +3,15 @@ import numpy as np
 
 class Fock():
 
-    def __init__(self,N,custom_input = None):
+    def __init__(self,N,custom_input = None,qiskit_notation='N'):
         if N < 1:
             raise Exception('Number of sites (N) must be at least 1.')
+        if not qiskit_notation == 'Y' and not qiskit_notation == 'N':
+            raise Exception('qiskit_notation must be "Y" or "N".')
         self.N = N
         self.sign = 1
         self.total_spin = 0
+        self.qiskit_notation = qiskit_notation
     
         if custom_input is None:
             self.fock = np.zeros((1,2*N)).astype(int)
@@ -54,23 +57,31 @@ class Fock():
                 spin_controller_down = 1
 
             if spin == '-':
-                sp = int(self.fock[0].size/2)
+                if self.qiskit_notation == 'N':
+                    sp = int(self.fock[0].size/2)
+                else:
+                    sp = 1
                 self.total_spin += spin_controller_down
-            else:
+            if spin == '+':
                 sp = 0
                 self.total_spin += spin_controller_up
-            
+           
+            if self.qiskit_notation == 'N':
+                index = site+sp
+            else:
+                index = 2*site+sp
+
             del spin_controller_up
             del spin_controller_down
-
-            if self.fock[0,site+sp] == checked_element:
-                partial_bin = ''.join(str(x) for x in self.fock.tolist()[0][:site+sp])
+            
+            if self.fock[0,index] == checked_element:
+                partial_bin = ''.join(str(x) for x in self.fock.tolist()[0][:index])
                 sign_power = 0
                 for number in partial_bin:
                     if number == '1':
                         sign_power += 1
                 self.sign = self.sign * (-1)**sign_power
-                self.fock[0,site+sp] = added_element
+                self.fock[0,index] = added_element
             else:
                 self.fock = 0
         

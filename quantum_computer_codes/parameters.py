@@ -8,7 +8,7 @@ N = 2 # Number of sites.
 
 t = -1
 U = 4
-mu = 3
+mu = 2
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
