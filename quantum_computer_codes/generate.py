@@ -203,7 +203,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
                             #excitation_matrix[row_num,column_num] = pEstimator().run(q_circuit,qubit_hamiltonian).result().values[0]
                             observables.append(qubit_hamiltonian)
                             bar()
-    
+   
     # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     if N != 2:

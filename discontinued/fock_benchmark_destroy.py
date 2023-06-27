@@ -16,6 +16,7 @@ from hamiltonian_circuit import t_fock
 from excitdef_reader import excitdef_reader
 import fock_class as f
 import hubbard_classes as h
+import hubbard_classes_destroy as hd
 
 
 # Print options
@@ -167,7 +168,10 @@ def matrix(type,lines_doc,N,spin_left,spin_right,t_mat_,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = h.hubbard(N,t_mat_,U,mu,'yes',qis_not='N')
+    if type[1] == '+':
+        hubbard_output = h.hubbard(N,t_mat_,U,mu,'yes',qis_not='Y')
+    else:
+        hubbard_output = hd.hubbard(N,t_mat_,U,mu,'yes',qis_not='Y')
     gs_block = hubbard_output[2]
     gs_numerical_state = hubbard_output[4]
     

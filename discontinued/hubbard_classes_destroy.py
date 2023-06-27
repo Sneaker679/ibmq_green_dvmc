@@ -69,46 +69,50 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no',qis_not=
                 else:
                     site2 = int((site2-1)/2)
 
-            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = -t[site1,site2]*tuple[1].sign
+            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = t[site1,site2]*tuple[1].sign
 
         if not U == 0: 
             for index,num in enumerate(block_num):
                 for site in range(N):
                     new_state = f.Fock(N,num,qis_not)
                     for spin in ['+','-']:
-                        new_state.op('destroy',site,spin)
                         new_state.op('create',site,spin)
+                        new_state.op('destroy',site,spin)
                                         
                     if not isinstance(new_state.fock,int):
-                        block_matrix[index,index] += U                  
-                    '''                    
+                        block_matrix[index,index] += U
+                                                           
                     new_state = f.Fock(N,num,qis_not)
-                    new_state.op('destroy',site,'+')                    
-                    new_state.op('create',site,'+')
+                    new_state.op('create',site,'+')                    
+                    new_state.op('destroy',site,'+')
 
                     if not isinstance(new_state.fock,int):
                         block_matrix[index,index] += -0.5*U
 
                     new_state = f.Fock(N,num,qis_not)
-                    new_state.op('destroy',site,'-')
                     new_state.op('create',site,'-')
+                    new_state.op('destroy',site,'-')
 
                     if not isinstance(new_state.fock,int):
                         block_matrix[index,index] += -0.5*U
 
-                    block_matrix[index,index] += (0.5**2)*U
-                    '''
+                    block_matrix[index,index] += 0.25*U
+                    
 
         if not mu == 0:
             for index,num in enumerate(block_num):
                 for site in range(N):
                     for spin in ['+','-']:
                         new_state = f.Fock(N,num,qis_not)
-                        new_state.op('destroy',site,spin)
                         new_state.op('create',site,spin)
+                        new_state.op('destroy',site,spin)
+
                         if not isinstance(new_state.fock,int):
-                            block_matrix[index,index] += -mu
+                            block_matrix[index,index] += mu
+                    
+                    block_matrix[index,index] += -2*mu
                      
+        
         energies,numerical_states = np.linalg.eigh(block_matrix)
         gs_energy_block = min(energies)
         gs_energies.append(gs_energy_block)
@@ -144,26 +148,6 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no',qis_not=
         return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
-#t=np.matrix([[0,1],[1,0]])
-#print(hubbard(2,t,4,0))
 
-'''
-Ref = -4.82842712474619
-current_energy = 0
-current_decimal = -.5
-increment = 0.001
-
-for i in range(1000000):
-    current_decimal += increment
-    tempE = hubbard(current_decimal,2,t,4,0)[0]
-    print(tempE,"---",current_decimal)
-    if (np.abs(tempE - Ref) < np.abs(current_energy - Ref)):
-        current_energy = tempE
-        print("ACCEPTED",np.abs(tempE-Ref))
-    else:
-        #current_decimal -= increment
-        #increment/=2
-        ...
-'''            
-
-
+t=np.matrix([[0,-1],[-1,0]])
+hubbard(2,t,4,1,prt='yes')
