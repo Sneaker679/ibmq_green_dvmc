@@ -2,13 +2,13 @@
 
 use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
-force_custom_circuit = 'Y'
+force_custom_circuit = 'N'
 
 N = 2 # Number of sites.
 
 t = -1
 U = 4
-mu = 0
+mu = 2
 
 spin_left = '+' # Either '+' or '-'.
 spin_right = '+'
@@ -106,17 +106,11 @@ circuit.draw()
 ############ FILE PATHS ############
 import sys,os
 
-sys.path.append(os.path.join(os.path.dirname(__file__),'output'))
-sys.path.append(os.path.dirname(__file__))
+# Junk output directory
+output_directory = os.path.join(os.getcwd(),'output')
+if not os.path.exists(output_directory):
+    os.mkdir(output_directory)
 
-output_directory = os.path.join(os.path.dirname(__file__),'output')
-pdf_output_directory = os.path.dirname(__file__)
-
-head_tail = os.path.split(os.path.dirname(__file__))
-while not head_tail[1] == 'quantum_computer_codes':
-    head_tail = os.path.split(head_tail[0])
-main_folder = os.path.join(head_tail[0],head_tail[1])
-
-excitation_directory = os.path.join(main_folder,'excitation_files')
-sys.path.insert(0,os.path.join(main_folder,'excitation_files'))
+# Pdf output directory
+pdf_output_directory = os.getcwd()
 ####################################

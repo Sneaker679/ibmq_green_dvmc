@@ -1,12 +1,11 @@
 ### Pacakges ################################################
 import matplotlib.pyplot as plt
 import numpy as np
+import sys,os
 
 ### Fetching parameters.py ##################################
-import sys,os
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
+working_directory = os.getcwd()
+sys.path.insert(0,working_directory)
 
 from parameters import N,t,U,mu,output_directory,pdf_output_directory,use_qcm
 

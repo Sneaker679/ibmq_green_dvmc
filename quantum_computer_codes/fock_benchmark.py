@@ -2,18 +2,30 @@
 import numpy as np
 import copy
 import time
-
-
-### Fetching parameters.py, hamiltonian_circuit.py, fock_class.py, hubbard_classes.py and excitdef_reader ###
 import sys,os
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
-sys.path.insert(0,os.path.join(os.path.dirname(__file__),'..','second_quantization_codes'))
 
-from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,pdf_output_directory,excitation_directory
+### Fetch parameters.py, hamiltonian_circuit.py, excitdef_reader.py, excitation_directory  ##########
+module_directory = os.path.dirname(__file__)
+sys.path.insert(0,module_directory)
+
+working_directory = os.getcwd()
+sys.path.insert(0,working_directory)
+
+from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,pdf_output_directory
 from hamiltonian_circuit import t_fock
+
+excitation_directory = os.path.join(module_directory,'excitation_files')
+sys.path.insert(0,excitation_directory)
+
 from excitdef_reader import excitdef_reader
+
+if os.path.exists(os.path.join(working_directory,excit_document)):
+    excitation_directory = os.getcwd()
+    print('Using the excitation file in this directory.\n')
+else:
+    print('Using included excitation.def files.\n')
+
+sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'))
 import fock_class as f
 import hubbard_classes as h
 

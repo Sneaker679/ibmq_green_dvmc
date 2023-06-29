@@ -1,6 +1,7 @@
 ### Packages ################################################
 import matplotlib.pyplot as plt
 import numpy as np
+import sys,os
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -22,10 +23,11 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
 
 
 ### Fetching parameters.py and importing qcm ################
-import sys,os
-if len(sys.argv) == 2:
-    sys.path.insert(0,'./examples/'+sys.argv[1]+'sites')
+module_directory = os.path.dirname(__file__)
+sys.path.insert(0,module_directory)
+
 from parameters import *
+
 if use_qcm == 'Y':
     import pyqcm
 #################### LATTICE SETUP ##########################

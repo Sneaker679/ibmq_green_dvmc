@@ -24,14 +24,27 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     TriangularLattice,
 )
 
-### Fetch parameters.py and hamiltonian_circuit.py ##########
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
+### Fetch parameters.py, hamiltonian_circuit.py, excitdef_reader.py, excitation_directory  ##########
+module_directory = os.path.dirname(__file__)
+sys.path.insert(0,module_directory)
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excitation_directory
+working_directory = os.getcwd()
+sys.path.insert(0,working_directory)
+
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excit_document
 from hamiltonian_circuit import Hamiltonian, circuit
+
+excitation_directory = os.path.join(module_directory,'excitation_files')
+sys.path.insert(0,excitation_directory)
+
 from excitdef_reader import excitdef_reader
+
+if os.path.exists(os.path.join(working_directory,excit_document)):
+    excitation_directory = os.getcwd()
+    print('Using the excitation file in this directory.\n')
+else:
+    print('Using included excitation.def files.\n')
+
 
 # Print options
 np.set_printoptions(linewidth= 10000)
@@ -183,6 +196,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     observables = []
     circuits = [q_circuit] * (N * N_exc)**2
     
+    print('Observables calculation...')
     with alive_bar(int((1/2)*N*N_exc*(N*N_exc+1))) as bar:
         for n in range(N_exc):
             for j in range(N):
@@ -206,8 +220,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
    
     # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
-    if N != 2:
-        job_monitor(job)
+    print('Quantum Computer simulation...')
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
@@ -242,9 +255,9 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
 lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
-        print(type+':')
+        print('##### '+type+' #####')
         print(matrix(type,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
         print()
 else:
-    print(generate_matrix+':')
+    print('##### '+generate_matrix+' #####')
     print(matrix(generate_matrix,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))

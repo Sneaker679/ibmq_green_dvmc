@@ -34,16 +34,20 @@ from qiskit import transpile
 from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
 from ctypes import cdll, c_int, c_double
+import sys, os, re
 
 
 ### Fetch parameters.py and hamiltonian_circuit.py
-import sys, os, re
-if len(sys.argv) == 2:
-    number = sys.argv[1]
-    sys.path.insert(0,os.path.join(os.path.dirname(__file__),'examples',number+'sites'))
+module_directory = os.path.dirname(__file__)
+sys.path.insert(0,module_directory)
+
+working_directory = os.getcwd()
+sys.path.insert(0,working_directory)
+
 from parameters import N,U,output_directory,pdf_output_directory
 from hamiltonian_circuit import omega
 print('GS energy:',omega)
+
 
 # Declaration of variables
 full_path = os.path.realpath(__file__)
