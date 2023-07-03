@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import copy
 import time
 import sys,os
-import concurrent.futures
 from alive_progress import alive_bar
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
@@ -180,15 +179,6 @@ hamiltonian is the hamiltonian to use for the calculation.
 save is for if we wish to save the matrices we calculate as a .npy file.
 """
 
-def function(i,m,j,n,spin_left,spin_right,lines_doc,hamiltonian,type):
-    ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
-    ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
-    observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
-    qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
-    #excitation_matrix[row_num,column_num] = pEstimator().run(q_circuit,qubit_hamiltonian).result().values[0]
-    #observables.append(qubit_hamiltonian)
-    return qubit_hamiltonian
-
 def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
@@ -207,29 +197,27 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     circuits = [q_circuit] * (N * N_exc)**2
     
     print('Observables calculation...')
-    results = []
-    pool = concurrent.futures.ThreadPoolExecutor()
-    for n in range(N_exc):
-        for j in range(N):
-            for m in range(N_exc):
-                for i in range(N): 
-                    """The 2 following lines represents the distribution of the calculated values in the
-                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
-                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
-                    The same principles for the rows, but i becomes j and m becomes n."""
-                    column_num = N * m + i
-                    row_num = N * n + j
-                    
-                    if column_num - row_num >= 0: # This is to calculate only half of the matrix.
-                        future = pool.submit(function,i,m,j,n,spin_left,spin_right,lines_doc,hamiltonian,type)
-                        results.append(future)
-                            
-    concurrent.futures.wait(results)
-    observables = []
-    for future in results:
-        result = future.result()
-        observables.append(result)
-
+    with alive_bar(int((1/2)*N*N_exc*(N*N_exc+1))) as bar:
+        for n in range(N_exc):
+            for j in range(N):
+                for m in range(N_exc):
+                    for i in range(N): 
+                        """The 2 following lines represents the distribution of the calculated values in the
+                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                        The same principles for the rows, but i becomes j and m becomes n."""
+                        column_num = N * m + i
+                        row_num = N * n + j
+                        
+                        if column_num - row_num >= 0: # This is to calculate only half of the matrix.
+                            ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
+                            ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
+                            observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
+                            qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
+                            #excitation_matrix[row_num,column_num] = pEstimator().run(q_circuit,qubit_hamiltonian).result().values[0]
+                            observables.append(qubit_hamiltonian)
+                            bar()
+   
     # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     print('Quantum Computer simulation...')
