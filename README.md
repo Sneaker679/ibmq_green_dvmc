@@ -11,10 +11,10 @@ This is a Python code. Use the latest version of language as of 15/06/2023 to av
 To run this code, you will need to install the following packages for your Python. The links to their documentation is also provided :
 - qiskit-->  (https://qiskit.org/documentation/getting_started.html)
 - qiskit_nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
-- pyqcm-->  (https://qcm-wed.readthedocs.io/en/latest/intro.html#installation)
 - matplotlib--> (https://matplotlib.org/stable/users/getting_started/index.html#installation-quick-start)
 - numpy--> (https://numpy.org/install/)
-- alive_progress--> (https://github.com/rsalmei/alive-progress)
+- mpire--> (https://sybrenjansen.github.io/mpire/v2.3.0/install.html)
+- [OPTIONAL] pyqcm-->  (https://qcm-wed.readthedocs.io/en/latest/intro.html#installation)
 
 Note that the "qcm" package is not manditory as its only purpose is to benchmark the calculations using the quantum computer.
 

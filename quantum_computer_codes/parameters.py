@@ -4,7 +4,7 @@ use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 
-N = 4 # Number of sites.
+N = 2 # Number of sites.
 
 t = -1
 U = 4

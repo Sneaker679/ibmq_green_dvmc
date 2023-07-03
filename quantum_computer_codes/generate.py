@@ -1,12 +1,10 @@
-### Packages ################################################
-import itertools as it
-import multiprocessing as mp
+## Packages ################################################
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import time
 import sys,os
-from alive_progress import alive_bar
+from mpire import WorkerPool
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -180,14 +178,16 @@ N_min is the number of neighbors the site with the less neighbors has.
 hamiltonian is the hamiltonian to use for the calculation.
 save is for if we wish to save the matrices we calculate as a .npy file.
 """
-def loop(n,j,m,i,N,spin_left,spin_right,lines_doc,hamiltonian,q_circuit):
+
+def qubit_Observable(hamiltonian,spin_left,spin_right,lines_doc,type,i,m,j,n):
+    from qiskit_nature.second_q.mappers import JordanWignerMapper
+    from qiskit_nature.second_q.operators import FermionicOp
+    import numpy as np
     ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
     ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
     observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
     qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(observable)
-    #observables.append(qubit_hamiltonian)
-    
-    return pEstimator().run(q_circuit,qubit_hamiltonian).result().values[0] 
+    return qubit_hamiltonian
 
 def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
     
@@ -203,58 +203,45 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     excitation_matrix = np.zeros((matrix_size,matrix_size))
 
     # Caluculation of half the elements 
-    observables = []
     circuits = [q_circuit] * (N * N_exc)**2
     
     print('Observables calculation...')
-    
-    number_of_elements = int((1/2)*N*N_exc*(N*N_exc+1))
-    with mp.Pool() as pool:
-        results = []
-        with alive_bar(number_of_elements) as bar:
-            parameters = []
-            for n in range(N_exc):
-                for j in range(N):
-                    for m in range(N_exc):
-                        for i in range(N): 
-                            column_num = N * m + i
-                            row_num = N * n + j
-                                
-                            if column_num - row_num >= 0: # This is to calculate only half of the matrix.
-                                result = pool.apply_async(loop, args=(n,j,m,i,N,spin_left,spin_right,lines_doc,hamiltonian,q_circuit))
-                                result.get(timeout=1)
-                                bar()
-    
+    with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
+        param = []
+        for n in range(N_exc):
+            for j in range(N):
+                for m in range(N_exc):
+                    for i in range(N): 
+                        """The 2 following lines represents the distribution of the calculated values in the
+                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                        The same principles for the rows, but i becomes j and m becomes n."""
+                        column_num = N * m + i
+                        row_num = N * n + j
 
+                        if column_num - row_num >= 0: # This is to calculate only half of the matrix.
+                            param.append((spin_left,spin_right,lines_doc,type,i,m,j,n))
 
+        observables = pool.map(qubit_Observable,param,progress_bar=True)
 
-
-
-
-
-
-    '''
     # Starting quantum simulation
-    estimator = pEstimator()
-    estimator.set_options(optimization_level=3,resilience_level=1)
-    job = estimator.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+    job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     print('Quantum Computer simulation...')
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
-    '''
-    '''
+    
     # Fill matrix
     # This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.
     correction = 0
     row = 0
-    for column,value in enumerate(results):
+    for column,value in enumerate(values):
         column = column + correction
         excitation_matrix[row,column] = value
         if column == N*N_exc-1:
             row += 1
             correction += -N*N_exc + row
-    '''
+    
     # Symmetrizing the matrix
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix
 
