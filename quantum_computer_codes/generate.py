@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import copy
 import time
 import sys,os
-import concurrent.futures
+from mpire import WorkerPool
 from alive_progress import alive_bar
 from qiskit.quantum_info import Pauli,Operator
 from qiskit.primitives import Estimator as pEstimator
@@ -180,7 +180,10 @@ hamiltonian is the hamiltonian to use for the calculation.
 save is for if we wish to save the matrices we calculate as a .npy file.
 """
 
-def function(i,m,j,n,spin_left,spin_right,lines_doc,hamiltonian,type):
+def qubit_Observable(hamiltonian,spin_left,spin_right,lines_doc,type,i,m,j,n):
+    from qiskit_nature.second_q.mappers import JordanWignerMapper
+    from qiskit_nature.second_q.operators import FermionicOp
+    import numpy as np
     ex_op_left = ex_operators('left',type,i,m,spin_left,lines_doc)
     ex_op_right = ex_operators('right',type,j,n,spin_right,lines_doc)
     observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
@@ -203,32 +206,27 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     excitation_matrix = np.zeros((matrix_size,matrix_size))
 
     # Caluculation of half the elements 
-    observables = []
     circuits = [q_circuit] * (N * N_exc)**2
     
     print('Observables calculation...')
-    results = []
-    pool = concurrent.futures.ThreadPoolExecutor()
-    for n in range(N_exc):
-        for j in range(N):
-            for m in range(N_exc):
-                for i in range(N): 
-                    """The 2 following lines represents the distribution of the calculated values in the
-                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
-                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
-                    The same principles for the rows, but i becomes j and m becomes n."""
-                    column_num = N * m + i
-                    row_num = N * n + j
-                    
-                    if column_num - row_num >= 0: # This is to calculate only half of the matrix.
-                        future = pool.submit(function,i,m,j,n,spin_left,spin_right,lines_doc,hamiltonian,type)
-                        results.append(future)
+    with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
+        param = []
+        for n in range(N_exc):
+            for j in range(N):
+                for m in range(N_exc):
+                    for i in range(N): 
+                        """The 2 following lines represents the distribution of the calculated values in the
+                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                        The same principles for the rows, but i becomes j and m becomes n."""
+                        column_num = N * m + i
+                        row_num = N * n + j
+
+                        if column_num - row_num >= 0: # This is to calculate only half of the matrix.
+                            param.append((spin_left,spin_right,lines_doc,type,i,m,j,n))
+
+        observables = pool.map(qubit_Observable,param,progress_bar=True)
                             
-    concurrent.futures.wait(results)
-    observables = []
-    for future in results:
-        result = future.result()
-        observables.append(result)
 
     # Starting quantum simulation
     job = pEstimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
