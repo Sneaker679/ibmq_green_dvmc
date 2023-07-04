@@ -136,12 +136,17 @@ if force_custom_circuit.upper() == 'N':
     print('Using exact diagonalisation state...')
 
     vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix())[1][:,0].real.tolist()
-    
+
     q = QuantumRegister(2*N)
-    circuit = QuantumCircuit(q)
-    circuit.initialize(vec,q)
+    qc = QuantumCircuit(q)
+    qc.initialize(vec,q)
+    if decompose_and_print_circuit == 'Y':
+        circuit = qc.decompose(reps=4*N)
+        print(circuit)
+    else:
+        circuit = qc
+        del qc
     circuit.draw()
-    #print(circuit)
 
 else:
     """We don't define any circuits here because is was already done in parameters.py. The previous if

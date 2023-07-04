@@ -1,4 +1,7 @@
 # ibmq_green_dvmc
+
+### Warning: This code is untested for Windows. Works on linux.
+
 ## Table of Contents
 - [Installation](#Installation)
 - [Description](#Description)
