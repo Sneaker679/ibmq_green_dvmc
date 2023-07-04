@@ -1,22 +1,40 @@
 ############## PARAMETERS ###############
+# For yes: 'Y'
+# For no: 'N'
 
-use_qcm = 'Y' # 'Y' or 'N'.
-force_custom_lattice = 'N'
-force_custom_circuit = 'Y'
-
-N = 2 # Number of sites.
-
+# Physic parameters
+N = 2                                           # Number of sites.
 t = -1
 U = 4
 mu = 2
+spin_left = '+'                                 # Either '+' or '-'.
+spin_right = '+'                                # Either '+' or '-'.
 
-spin_left = '+' # Either '+' or '-'.
-spin_right = '+'
-
-excit_document = f'excitation{N}sites.def'
+# Code parameters
+use_qcm = 'Y' # 'Y' or 'N'.
+force_custom_lattice = 'N'
+force_custom_circuit = 'N'
+decompose_and_print_circuit = 'N'
 generate_npy = 'Y' 
-generate_matrix = 'ALL' # Should be left on 'ALL'.
+generate_matrix = 'ALL'                         # 'H+','H-','S+','S-' or 'ALL'.
+excit_document = f'excitation{N}sites.def'
 
+# Simulation parameters
+noisy_simulation = 'N'
+estimator_options = {
+        'method': 'automatic',
+        'device': 'CPU',
+        'precision': 'double',
+        'max_job_size': None,
+        'max_shot_size': None,
+        'max_parallel_threads': 0,
+        'max_parallel_experiments': 1,
+        'max_parallel_shots': 0
+        }
+
+"""More info about these options here:
+https://qiskit.org/ecosystem/aer/stubs/qiskit_aer.QasmSimulator.html
+"""
 
 ############### PACKAGES ################
 import matplotlib as mpl

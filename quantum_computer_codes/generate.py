@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
 from mpire import WorkerPool
+from qiskit_aer.primitives import Estimator as Noisy_Estimator
 from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
@@ -17,7 +18,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excit_document
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
 from hamiltonian_circuit import Hamiltonian, circuit
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
@@ -240,7 +241,11 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
         observables = pool.map(qubit_Observable,param,progress_bar=True)
 
     # Starting quantum simulation
-    job = Estimator().run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+    if noisy_simulation == 'Y':
+        backend = Noisy_Estimator(backend_options=estimator_options)
+    else:
+        backend = Estimator()
+    job = backend.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
     print('Quantum Computer simulation...')
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
@@ -249,10 +254,10 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     # Filling matrix
     """This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.
     Basically, we have to figure out these indexes:
-    [0 0 0 0]
-    [- 0 0 0]
-    [- - 0 0]
-    [- - - 0]
+    [i i i i]
+    [- i i i]
+    [- - i i]
+    [- - - i]
     """
     correction = 0
     row = 0
