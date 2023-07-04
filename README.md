@@ -55,7 +55,7 @@ All the files located in `quantum_computer_codes/` are useful to the calculation
 
 ## Execution
 
-The `parameters.py` can be copied from `quantum_computer_codes/` and pasted anywhere in the operating system. Then, change the parameters, lattices and the circuit in the file to your needs. From the same directory as the file, execute the following codes:
+The `parameters.py` can be copied from `quantum_computer_codes/` and pasted anywhere in the operating system. Then, change the parameters, lattices and the circuit in the file to your needs. If you want a custom `excitation.def` file to be used, in the same directory as your `parameter.py` file, have the `excitation.def` you want. From the same directory as the file, execute the following codes.
 
 ### Running the quantum computer simulation
 Run these the first time:

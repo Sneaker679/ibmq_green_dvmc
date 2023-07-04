@@ -20,24 +20,16 @@
 # 3. This notice may not be removed or altered from any source distribution.
 
 ### Packages ################################################
-import copy
-import time
+import copy,time,sys,os,re
 import numpy as np
-from numpy import linalg as la
 import matplotlib.pyplot as plt
-from qiskit.quantum_info import Pauli,Operator
-from qiskit.primitives import Estimator as pEstimator
-from qiskit_nature.second_q.mappers import JordanWignerMapper
-from qiskit_nature.second_q.operators import FermionicOp
-from qiskit import QuantumCircuit,QuantumRegister
-from qiskit import transpile
+from numpy import linalg as la
 from scipy.linalg import eig, eigh, ordqz
 from scipy.linalg.lapack import zggev
 from ctypes import cdll, c_int, c_double
-import sys, os, re
 
 
-### Fetch parameters.py and hamiltonian_circuit.py
+### Fetch parameters.py and hamiltonian_circuit.py ##########
 module_directory = os.path.dirname(__file__)
 sys.path.insert(0,module_directory)
 
@@ -312,5 +304,8 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   
   sys.exit()  
 
+
+
 if __name__ == '__main__':
+    """If __main__, then it generates the matrices for ibmq."""
     dvmc_spectrum(omega,verbose_read)

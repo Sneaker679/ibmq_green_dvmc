@@ -2,14 +2,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys,os
-from qiskit.quantum_info import Pauli,Operator
-from qiskit.primitives import Estimator as pEstimator
+from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
-from qiskit_nature.second_q.problems import EigenstateResult,LatticeModelProblem
-from qiskit_nature.second_q.algorithms import GroundStateEigensolver
 from qiskit import QuantumCircuit,QuantumRegister
-from qiskit import transpile
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
 from qiskit_nature.second_q.hamiltonians.lattices import (
     BoundaryCondition,
@@ -112,9 +108,9 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
                 t_fock[index1,index2] = t
 
 else:
-    '''If the number of sites is a prime number, we only use the custom lattice from qiskit is parameters.py to
-    generate the associated hamiltonian. The custom lattice we have defined for qcm and fock will be handled by 
-    qcm_benchmark and fock_benchmark.'''
+    '''If the number of sites is a prime number, we use the custom lattice from qiskit in parameters.py to
+    generate the associated hamiltonian. The custom lattice we have defined for qcm and fock in parameter.py will be handled by 
+    qcm_benchmark.py and fock_benchmark.py.'''
     
     if len(factors) == 2:
         print('Number of sites is a prime number.')
@@ -136,7 +132,7 @@ else:
 This circuit is either created automatically here, or customized in parameters.py.'''
 
 if force_custom_circuit.upper() == 'N': 
-    # We calculate the exact ground state and use that vector to initialize the qubits.
+    """We calculate the exact ground state and use that vector to initialize the qubits."""
     print('Using exact diagonalisation state...')
 
     vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix())[1][:,0].real.tolist()
@@ -148,6 +144,8 @@ if force_custom_circuit.upper() == 'N':
     #print(circuit)
 
 else:
+    """We don't define any circuits here because is was already done in parameters.py. The previous if
+    overrides the custom circuit for the automatic one."""
     print('Using custom circuit...')
 print()
 #######################################################
@@ -156,7 +154,7 @@ print()
 ########### CALCULATING GROUND STATE ENERGY ###########
 qubit_hamiltonian = JordanWignerMapper.mode_based_mapping(Hamiltonian)
 
-job = pEstimator().run(circuit,qubit_hamiltonian)
+job = Estimator().run(circuit,qubit_hamiltonian)
 result = job.result()
 values = result.values
 omega = values[0]

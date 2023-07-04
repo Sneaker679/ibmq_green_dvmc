@@ -4,7 +4,7 @@ import copy
 import time
 import sys,os
 
-### Fetch parameters.py, hamiltonian_circuit.py, excitdef_reader.py, excitation_directory  ##########
+### Fetch parameters.py, hamiltonian_circuit.py, excitdef_reader.py, excitation_directory,fock_class.py and hubbard_classes.py  ##########
 module_directory = os.path.dirname(__file__)
 sys.path.insert(0,module_directory)
 
@@ -13,6 +13,7 @@ sys.path.insert(0,working_directory)
 
 from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,pdf_output_directory
 from hamiltonian_circuit import t_fock
+
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
 sys.path.insert(0,excitation_directory)
@@ -25,6 +26,7 @@ if os.path.exists(os.path.join(working_directory,excit_document)):
 else:
     print('Using included excitation.def files.\n')
 
+
 sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'))
 import fock_class as f
 import hubbard_classes as h
@@ -34,9 +36,16 @@ import hubbard_classes as h
 np.set_printoptions(linewidth = 1000,precision=4)
 
 
-### FUNCTIONS
+### FUNCTIONS ################################################
 # In fock's, returns the excited state.
 def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
+    """Parameters
+    type: H+,H-,S+ or S-.
+    i,m: i is the site, m the excitation label.
+    spin: spin to be used for the calculation.
+    gs_block_hub: the list of fock's basis states for the GS, obtained with the hubbard() function when manip='yes'.
+    gs_numerical_state: actual ground state of the system, obtained with the hubbard() function.
+    """
 
     # Assigns the components of the numerical ground state to its respective state in the block
     excited_block = [[state] for state in copy.deepcopy(gs_block_hub)]
@@ -59,7 +68,10 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
     Since calculating the '-' matrices involves checking for a 'hole', the order
     in which the sub-operators of the operator 'n' are calculated is different
     (creation before destruction instead of destruction before creation).
-    Hence, we have n1_operator and n2_operator to control that order."""
+    Hence, we have n1_operator and n2_operator to control that order.
+
+    c**dag c**dag c |GS> is c**dag n1_operator n2_operator |GS>
+    """
     if type[1] == '+':
         c_operator = 'create'
         n1_operator = 'create'
@@ -68,8 +80,6 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
         c_operator = 'destroy'
         n1_operator = 'destroy'
         n2_operator = 'create'
-        #n1_operator = 'create'
-        #n2_operator = 'destroy'
     
     # Defining the opposite of the inputted spin
     if spin == '+':
@@ -139,7 +149,10 @@ def element(type,N,ex_state_left,ex_state_right,hubbard_output,lines_doc):
 
                 """If we are calculating the H matrices, we need to calculate <state_left|H|state_right> for each element in ex_state_right/left. The result
                 of this operation is located in the hamiltonian itself. Thus we need to look into it. Finding the indexes is troublesome, hence why it is important
-                to understand how the hubbard outputs's lists are structed."""
+                to understand how the hubbard function outputs's lists are structed. For example:
+                [[N=0],[N=1],[N=2],...]
+                [N=2] = [[Sz=-1],[Sz=0],...]
+                """
                 if type[0] == 'H':
                     # This 'if' determines if the states are in the same block. If they are not, no point in finding the indexes because the result is 0.
                     if (state_left[0].num_electrons == state_right[0].num_electrons
