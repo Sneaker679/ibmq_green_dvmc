@@ -13,7 +13,8 @@
 This is a Python code. Use the latest version of language as of 15/06/2023 to avoid issues.
 To run this code, you will need to install the following packages for your Python. The links to their documentation is also provided :
 - qiskit-->  (https://qiskit.org/documentation/getting_started.html)
-- qiskit_nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
+- qiskit-nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
+- qiskit-aer OR qiskit-aer-gpu-->(https://qiskit.org/ecosystem/aer/getting_started.html)
 - matplotlib--> (https://matplotlib.org/stable/users/getting_started/index.html#installation-quick-start)
 - numpy--> (https://numpy.org/install/)
 - mpire--> (https://sybrenjansen.github.io/mpire/v2.3.0/install.html)

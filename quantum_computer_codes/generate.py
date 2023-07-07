@@ -33,10 +33,8 @@ else:
     print('Using the excitation.def files included with the code.\n')
 
 
-
 # Print options
 np.set_printoptions(linewidth= 10000)
-
 
 
 ### FUNCTIONS ###############################################
@@ -287,7 +285,6 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
 
 
 if __name__ == '__main__':
-    
     lines_doc = excitdef_reader(excit_document,excitation_directory)
     if generate_matrix.upper() == 'ALL':
         for type in ['H+','H-','S+','S-']:

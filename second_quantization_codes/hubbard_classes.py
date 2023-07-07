@@ -4,7 +4,7 @@ import copy
 import time
 import sys
 
-def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no',qis_not='N'):
+def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,manip='no',prt='no',qis_not='N'):
 
     bank = [state_num for state_num in range(4**N)]
     gs_energies = []
@@ -68,8 +68,7 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no',qis_not=
                     site2 = int(site2/2)
                 else:
                     site2 = int((site2-1)/2)
-
-            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = -t[site1,site2]*tuple[1].sign
+            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = t[site1,site2]*tuple[1].sign
 
         if not U == 0: 
             for index,num in enumerate(block_num):
@@ -144,8 +143,8 @@ def hubbard(N=2,t=np.matrix([[0,1],[1,0]]),U=4,mu=2,manip='no',prt='no',qis_not=
         return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
     if manip.lower() == 'yes':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
-#t=np.matrix([[0,1],[1,0]])
-#print(hubbard(2,t,4,0))
+
+#print(hubbard(N=2,U=4,mu=0))
 
 '''
 Ref = -4.82842712474619

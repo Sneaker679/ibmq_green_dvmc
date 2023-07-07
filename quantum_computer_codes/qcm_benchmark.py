@@ -15,11 +15,21 @@ from hamiltonian_circuit import model
 
 
 # Making a list of sectors where the GS probably is.
-sec = 'R0:N0:S0'
-for sectors in range(2*N):
-    sectors += 1
-    if sectors % 2 == 0:
-        sec += f'/R0:N{sectors}:S0'
+#sec = 'R0:N0:S0'
+sec = ''
+
+for Ne in range(N+1):
+    S = -Ne
+    for m in range(Ne+1):
+        sec += f'/R0:N{Ne}:S{S}'
+        if(N!=Ne):
+            new_Ne = 2*N-Ne
+            sec += f'/R0:N{new_Ne}:S{S}'
+
+        S = S+2
+    Ne += 1
+sec = sec[1:]
+
 
 # Targeting sectors and setting parameters.
 model.set_target_sectors([sec])

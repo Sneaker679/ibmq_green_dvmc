@@ -6,14 +6,14 @@
 N = 2                                           # Number of sites.
 t = -1
 U = 4
-mu = 2
+mu = -0.7
 spin_left = '+'                                 # Either '+' or '-'.
 spin_right = '+'                                # Either '+' or '-'.
 
 # Code parameters
 use_qcm = 'Y' # 'Y' or 'N'.
 force_custom_lattice = 'N'
-force_custom_circuit = 'N'
+force_custom_circuit = 'Y'
 decompose_and_print_circuit = 'N'
 generate_npy = 'Y' 
 generate_matrix = 'ALL'                         # 'H+','H-','S+','S-' or 'ALL'.
@@ -23,13 +23,14 @@ excit_document = f'excitation{N}sites.def'
 noisy_simulation = 'N'
 estimator_options = {
         'method': 'automatic',
+        #'executor':, 
         'device': 'CPU',
         'precision': 'double',
-        'max_job_size': None,
-        'max_shot_size': None,
-        'max_parallel_threads': 0,
-        'max_parallel_experiments': 1,
-        'max_parallel_shots': 0
+        'max_job_size': 8,
+        'max_shot_size': 1,
+        'max_parallel_threads': 8,
+        'max_parallel_experiments': 8,
+        'max_parallel_shots': 8
         }
 
 """More info about these options here:
@@ -104,7 +105,7 @@ t_fock = np.matrix([
 
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
-
+'''
 theta = 2*1.178097245
 
 circuit.ry(theta, 2)
@@ -117,6 +118,11 @@ circuit.cx(1,3)
 circuit.cx(1,2)
 circuit.cz(1,2)
 circuit.swap(1,2)
+'''
+circuit.h(3)
+circuit.cx(3,1)
+circuit.x(3)
+
 circuit.draw()
 ####################################
 

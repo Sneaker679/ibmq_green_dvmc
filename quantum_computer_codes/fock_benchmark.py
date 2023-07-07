@@ -36,6 +36,14 @@ import hubbard_classes as h
 np.set_printoptions(linewidth = 1000,precision=4)
 
 
+result = h.hubbard(N,t_fock,U,mu,manip='yes')
+for ele1 in result[0]:
+    print()
+    for ele2 in ele1:
+        print(ele2)
+print(h.hubbard(N,t_fock,U,mu,prt='yes'))
+
+
 ### FUNCTIONS ################################################
 # In fock's, returns the excited state.
 def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):

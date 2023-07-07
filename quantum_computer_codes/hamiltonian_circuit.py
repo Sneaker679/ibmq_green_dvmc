@@ -6,6 +6,7 @@ from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
 from qiskit import QuantumCircuit,QuantumRegister
+from qiskit.quantum_info import Statevector
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
 from qiskit_nature.second_q.hamiltonians.lattices import (
     BoundaryCondition,
@@ -135,7 +136,7 @@ if force_custom_circuit.upper() == 'N':
     """We calculate the exact ground state and use that vector to initialize the qubits."""
     print('Using exact diagonalisation state...')
 
-    vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix())[1][:,0].real.tolist()
+    vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)[1][:,0].real.tolist()
 
     q = QuantumRegister(2*N)
     qc = QuantumCircuit(q)
@@ -153,6 +154,9 @@ else:
     overrides the custom circuit for the automatic one."""
     print('Using custom circuit...')
 print()
+
+#sv = Statevector.from_instruction(circuit)
+#print(sv.to_dict())
 #######################################################
 
 
