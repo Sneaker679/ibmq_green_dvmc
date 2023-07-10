@@ -136,6 +136,8 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   break_CA = False
   SV_AC_tmp = SV_AC[::-1]
   SV_CA_tmp = SV_CA[::-1]
+  #print(SV_AC_tmp)
+  #print(SV_CA_tmp)
 
   import math
   cond_num_AC = math.log10(SV_AC_tmp[0]/np.abs(SV_AC_tmp[-1]))

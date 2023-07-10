@@ -3,10 +3,11 @@
 ### Warning: This code is untested for Windows. Works on linux.
 
 ## Table of Contents
-- [Installation](#Installation)
-- [Description](#Description)
+- [Installation](#installation)
+- [Description](#description)
 - [How it works](#how-it-works)
 - [Execution](#execution)
+- [Examples](#examples)
 - [Todo](#todo)
 
 ## Installation
@@ -59,34 +60,46 @@ All the files located in `quantum_computer_codes/` are useful to the calculation
 
 ## Execution
 
-The `parameters.py` can be copied from `quantum_computer_codes/` and pasted anywhere in the operating system. Then, change the parameters, lattices and the circuit in the file to your needs. If you want a custom `excitation.def` file to be used, in the same directory as your `parameter.py` file, have the `excitation.def` you want. From the same directory as the file, execute the following codes.
+The `parameters.py` can be copied from `quantum_computer_codes/` and pasted anywhere in the operating system. Then, change the parameters, lattices and the circuit in the file to your needs. If you want a custom `excitation.def` file to be used, in the same directory as your `parameter.py` file, have the `excitation.def` you want. Then, to run any of the codes, execute this line in the command line (CMD): `$ python3 path/to/code/thecode.py`. For the following procedure, we assume that you are located within the `quantum_computer_codes` directory, hence there is no `path/to/code/`.
 
 ### Running the quantum computer simulation
 Run these the first time:
-- `generate.py`
-- `graph.py`
+```bash
+$ python3 generate.py
+$ python3 graph.py
+```
 
 Your `ibmq_spectrum.pdf` is stored in the same folder as `parameters.py`. As long as `graph.py` is provided matrices, the code can work idependantly or, in other words, without running `generate.py` before. 
 
 ### Running the qcm benchmark
 Run this:
-- `qcm_benchmark.py`
+```bash
+$ python3 qcm_benchmark.py
+```
 
 Your `qcm_spectrum.pdf` is stored in the same folder as `parameters.py`. Note that in the event the the ground_state is located in a block where the total spin is not of 0, you will need to modify this code to target the proper block for the calculation. However, this occurence is highly unlikely.
 
 ### Running the fock benchmark
 Run this:
-- `fock_benchmark.py`
+```bash
+$ python3 fock_benchmark.py
+```
 
 Your `fock_spectrum.pdf` is stored in the same folder as `parameters.py`.
 
 ### Combining the graphs
 Run this:
-- `combined_graphs.py`
+```bash
+$ combined_graphs.py
+```
 
 Your `combined_spectrum.pdf` is stored in the same folder as `parameters.py`.
 
 
+## Examples
+In the directory `quantum_computer_codes/examples`, there are some directories containing basic examples that show how to run the code. Refer to the README in this directory.
+
 ## TODO
 - Add a code to generate excitation.def files automatically.
-- Optimisation
+- Split load on a maximum number of cores.
+- Debugging

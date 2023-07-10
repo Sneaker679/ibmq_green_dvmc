@@ -35,14 +35,14 @@ import hubbard_classes as h
 # Print options
 np.set_printoptions(linewidth = 1000,precision=4)
 
-
+'''
 result = h.hubbard(N,t_fock,U,mu,manip='yes')
 for ele1 in result[0]:
     print()
     for ele2 in ele1:
         print(ele2)
 print(h.hubbard(N,t_fock,U,mu,prt='yes'))
-
+'''
 
 ### FUNCTIONS ################################################
 # In fock's, returns the excited state.
@@ -107,23 +107,22 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
         # Calculation depending on the nature of the excited state.
         if m == 0:
             state[0].op(c_operator,i,spin)
+        elif t == 1:
+            state[0].op(n2_operator,ra,spin_op)
+            state[0].op(n1_operator,ra,spin_op)
+            state[0].op(c_operator,i,spin)
+        elif t == 3:
+            state[0].op(n2_operator,ra,spin_op)
+            state[0].op(n1_operator,ra,spin_op)
+            state[0].op(n2_operator,rb,spin_op)
+            state[0].op(n1_operator,rb,spin_op)
+            state[0].op(c_operator,i,spin)
         else:
-            if t == 1:
-                state[0].op(n2_operator,ra,spin_op)
-                state[0].op(n1_operator,ra,spin_op)
-                state[0].op(c_operator,i,spin)
-            elif t == 3:
-                state[0].op(n2_operator,ra,spin_op)
-                state[0].op(n1_operator,ra,spin_op)
-                state[0].op(n2_operator,rb,spin_op)
-                state[0].op(n1_operator,rb,spin_op)
-                state[0].op(c_operator,i,spin)
-            else:
-                state[0].op(n2_operator,ra,spin_op)
-                state[0].op(n1_operator,ra,spin_op)
-                state[0].op(n2_operator,rb,spin)
-                state[0].op(n1_operator,rb,spin)
-                state[0].op(c_operator,i,spin)
+            state[0].op(n2_operator,ra,spin_op)
+            state[0].op(n1_operator,ra,spin_op)
+            state[0].op(n2_operator,rb,spin)
+            state[0].op(n1_operator,rb,spin)
+            state[0].op(c_operator,i,spin)
     
     # Cleaning up the excited_state to only include the actual states that survived the operations
     excited_block[:] = [state for state in excited_block if not isinstance(state[0].fock,int)]
@@ -245,7 +244,7 @@ else:
     
 
 # Generating graph using graph.py
-omega = h.hubbard(N,t_fock,U,mu,qis_not='Y')
+omega = h.hubbard(N,t_fock,U,mu,qis_not='N')
 verbose_read = 1
 from graph import dvmc_spectrum
 dvmc_spectrum(omega[0],verbose_read,'Y')

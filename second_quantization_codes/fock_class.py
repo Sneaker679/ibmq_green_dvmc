@@ -45,35 +45,20 @@ class Fock():
 
         if not isinstance(self.fock,int):
             
-            if type == 'create':
-                checked_element = 0
-                added_element = 1
-                spin_controller_up = 1
-                spin_controller_down = -1
-            else:
-                checked_element = 1
-                added_element = 0
-                spin_controller_up = -1
-                spin_controller_down = 1
+            checked_element = 0         if type == 'create' else 1
+            added_element = 1           if type == 'create' else 0
+            spin_controller_up = 1      if type == 'create' else -1
+            spin_controller_down = -1   if type == 'create' else 1
 
             if spin == '-':
-                if self.qiskit_notation == 'N':
-                    sp = int(self.fock[0].size/2)
-                else:
-                    sp = 1
-                self.total_spin += spin_controller_down
+                sp = 1          if self.qiskit_notation == 'Y'  else int(self.fock[0].size/2)
             if spin == '+':
-                sp = 0
-                self.total_spin += spin_controller_up
+                sp = 0          if self.qiskit_notation == 'Y'  else 0
            
-            if self.qiskit_notation == 'N':
-                index = site+sp
-            else:
-                index = 2*site+sp
+            index = 2*site+sp   if self.qiskit_notation == 'Y'  else site+sp
 
-            del spin_controller_up
-            del spin_controller_down
-            
+            self.total_spin += spin_controller_down if spin == '-' else spin_controller_up
+
             if self.fock[0,index] == checked_element:
                 partial_bin = ''.join(str(x) for x in self.fock.tolist()[0][:index])
                 sign_power = 0

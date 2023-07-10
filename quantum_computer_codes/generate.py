@@ -8,7 +8,7 @@ from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
-
+from qiskit.quantum_info import Statevector
 
 
 ### Fetch parameters.py, hamiltonian_circuit.py, excitdef_reader.py, excitation_directory  ##########
@@ -34,7 +34,7 @@ else:
 
 
 # Print options
-np.set_printoptions(linewidth= 10000)
+np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
 
 
 ### FUNCTIONS ###############################################
@@ -46,7 +46,6 @@ site is the site for which we want to create the operator. The first site is #0.
 spin is the spin to be used for the creation of the operator.
 """
 def create(N,site,spin): 
-    site += 1
     if not spin == '-' and not spin == '+':
         raise Exception('Input must be "+" or "-".')
     if spin == '+':
@@ -58,13 +57,15 @@ def create(N,site,spin):
     The equation in the parenthesis is simply to accomodate qiskit's notation for
     the fock space.
 
-    | 1,up 1,down 2,up 2,down >
+    | 0,up 0,down 1,up 1,down >
+    NOTE: This last line is false? Currently, the notation implemented is | 0,down 0,up 1,down 1,up > and it yields the correct results.
     """
     operator = FermionicOp(
         {
-            '+_' + str(2*site-spin-1): 1.0,
+            '+_' + str(2*site+spin): -t,
         },
         num_spin_orbitals=2*N,
+        copy=False
     )
     return operator
 
@@ -143,7 +144,7 @@ def ex_operators(type,i,m,spin,lines_doc):
         elif t == 3:
             ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin_op)
         else:
-            ex_ops = c_operator @ check(check_operator,N,ra,spin_op) @ check(check_operator,N,rb,spin)
+            ex_ops = c_operator @ check(check_operator,N,rb,spin) @ check(check_operator,N,ra,spin_op) 
     return ex_ops
 
 
@@ -281,7 +282,6 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
     print('Time:',end - start,'seconds.')
     
     return excitation_matrix
-
 
 
 if __name__ == '__main__':
