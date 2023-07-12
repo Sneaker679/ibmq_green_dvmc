@@ -3,12 +3,12 @@
 # For no: 'N'
 
 # Physic parameters
-N = 2                                           # Number of sites.
+N = 4                                           # Number of sites.
 t = -1
 U = 4
 mu = 2
-spin_left = '+'                                 # Either '+' or '-'.
-spin_right = '+'                                # Either '+' or '-'.
+spin = '+'                                 # Either '+' or '-'.
+spin_gs = '+'
 
 # Code parameters
 use_qcm = 'N'

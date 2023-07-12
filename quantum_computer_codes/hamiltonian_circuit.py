@@ -25,6 +25,9 @@ sys.path.insert(0,module_directory)
 
 from parameters import *
 
+sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'))
+from fock_class import Fock
+
 if use_qcm == 'Y':
     import pyqcm
 #################### LATTICE SETUP ##########################
@@ -114,8 +117,9 @@ else:
     qcm_benchmark.py and fock_benchmark.py.'''
     
     if len(factors) == 2:
-        print('Number of sites is a prime number.')
-    print('Using custom lattice...')
+        print('Number of sites is a prime number. Using custom lattice...')
+    else:
+        print('Forcing custom lattice...')
     
     # The lattice here has been initialized in parameters.py
     # We make the hamiltonian out of it.
@@ -134,9 +138,35 @@ This circuit is either created automatically here, or customized in parameters.p
 
 if force_custom_circuit.upper() == 'N': 
     """We calculate the exact ground state and use that vector to initialize the qubits."""
-    print('Using exact diagonalisation state...')
+    print('Using exact diagonalisation for the ground state circuit...')
 
-    vec = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)[1][:,0].real.tolist()
+    eigen_states = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)[1]
+
+    def find_vector_spin(vec):
+        tol = 0.00001
+        for vec_index,component in enumerate(vec):
+            if np.abs(component) > tol:
+                vec_spin = Fock(N,vec_index,qiskit_notation='Y').total_spin
+                break
+        return vec_spin
+
+    gs_index = 0
+    while True:
+        if spin_gs not in ['+','-']:
+            raise Exception("spin_gs must be either '+' or '-'.")
+ 
+        vec = eigen_states[:,gs_index].real.tolist()
+        if spin_gs == '+':
+            vec_spin = find_vector_spin(vec) 
+            if vec_spin >= 0:
+                break
+            
+        if spin_gs == '-':
+            vec_spin = find_vector_spin(vec) 
+            if vec_spin < 0:
+                break
+
+        gs_index += 1
 
     q = QuantumRegister(2*N)
     qc = QuantumCircuit(q)
@@ -152,7 +182,7 @@ if force_custom_circuit.upper() == 'N':
 else:
     """We don't define any circuits here because is was already done in parameters.py. The previous if
     overrides the custom circuit for the automatic one."""
-    print('Using custom circuit...')
+    print('Using custom ground state circuit...')
 print()
 
 #sv = Statevector.from_instruction(circuit)

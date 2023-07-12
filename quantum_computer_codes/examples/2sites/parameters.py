@@ -3,17 +3,17 @@
 # For no: 'N'
 
 # Physic parameters
-N = 2                                           # Number of sites.
+N = 4                                           # Number of sites.
 t = -1
 U = 4
 mu = 2
-spin_left = '+'                                 # Either '+' or '-'.
-spin_right = '+'                                # Either '+' or '-'.
+spin = '+'                                 # Either '+' or '-'.
+spin_gs = '+'
 
 # Code parameters
 use_qcm = 'N'
 force_custom_lattice = 'N'
-force_custom_circuit = 'Y'
+force_custom_circuit = 'N'
 decompose_and_print_circuit = 'N'
 generate_npy = 'Y' 
 generate_matrix = 'ALL'                         # 'H+','H-','S+','S-' or 'ALL'.
@@ -106,8 +106,8 @@ t_fock = np.matrix([
 
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
-
-#Circuit for 2 sites, mu=2
+'''
+Circuit for 2 sites, mu=2
 
 theta = 2*1.178097245
 circuit.ry(theta, 2)
@@ -120,9 +120,9 @@ circuit.cx(1,3)
 circuit.cx(1,2)
 circuit.cz(1,2)
 circuit.swap(1,2)
-
 '''
-#Circuit for 2 sites, mu=-0.7
+'''
+Circuit for 2 sites, mu=-0.7
 
 circuit.h(3)
 circuit.cx(3,1)

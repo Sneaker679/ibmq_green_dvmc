@@ -102,4 +102,4 @@ In the directory `quantum_computer_codes/examples`, there are some directories c
 ## TODO
 - Add a code to generate excitation.def files automatically.
 - Split load on a maximum number of cores.
-- Debugging
+- Debugging.

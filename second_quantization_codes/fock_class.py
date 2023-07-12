@@ -21,15 +21,22 @@ class Fock():
         if custom_input is not None:
             if custom_input < 0:
                 raise Exception('The custom input for the state number must be a positive integer.')
+
             self.fock = np.matrix([int(i) for i in str(np.binary_repr(custom_input,N*2))])
             self.num =  int(''.join(str(x) for x in np.nditer(self.fock)),2)
             self.num_electrons = np.count_nonzero(self.fock == 1)
             for index,value in np.ndenumerate(self.fock):
                 if value != 0:
-                    if index[1] < self.fock.shape[1]/2:
-                        self.total_spin += 1
-                    else:
-                        self.total_spin += -1
+                    if self.qiskit_notation == 'N':
+                        if index[1] < self.fock.shape[1]/2:
+                            self.total_spin += 1
+                        else:
+                            self.total_spin += -1
+                    if self.qiskit_notation == 'Y':
+                        if index[1] % 2 == 0:
+                            self.total_spin += 1
+                        else:
+                            self.total_spin += -1
 
     def __str__(self):
         return str(self.fock)

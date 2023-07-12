@@ -10,26 +10,33 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,output_directory,pdf_output_directory
+from parameters import N,t,U,mu,spin,spin_gs,output_directory,pdf_output_directory
 from hamiltonian_circuit import model
 
 
 # Making a list of sectors where the GS probably is.
-#sec = 'R0:N0:S0'
 sec = ''
+
+def new_sector(N,Ne):
+    sec = f'/R0:N{Ne}:S{S}'
+    if not N == Ne:
+        new_Ne = 2*N-Ne
+        sec += f'/R0:N{new_Ne}:S{S}'
+    return sec
 
 for Ne in range(N+1):
     S = -Ne
     for m in range(Ne+1):
-        sec += f'/R0:N{Ne}:S{S}'
-        if(N!=Ne):
-            new_Ne = 2*N-Ne
-            sec += f'/R0:N{new_Ne}:S{S}'
+        if spin_gs == '+':
+            if S >= 0:
+                sec += new_sector(N,Ne)
+        if spin_gs == '-':
+            if S <= 0:
+                sec += new_sector(N,Ne)
 
         S = S+2
     Ne += 1
 sec = sec[1:]
-
 
 # Targeting sectors and setting parameters.
 model.set_target_sectors([sec])
@@ -41,10 +48,29 @@ mu = {mu}
 
 # Calculating the Ground State Energy.
 I = pyqcm.model_instance(model)
-print(I.ground_state())
+gs = I.ground_state(pr=False)
+
+if len(gs[0][1].split('/')) > 1:
+    new_sectors = gs[0][1].split('/')
+    for index,sector in enumerate(new_sectors):
+        sector_list = sector.split(':')
+        if int(sector_list[2][-1]) == 0:
+           del new_sectors[index]
+    new_sectors = new_sectors[:9]
+    if new_sectors[-1] == ':':
+        new_sectors = new_sectors[0][:8]
+    model.set_target_sectors([f'{new_sectors}'])
+    I = pyqcm.model_instance(model)
+    gs = I.ground_state(pr=False)
+print(gs)
 
 # Generating PDF
-result = I.cluster_spectral_function(file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15)
+if spin == '+':
+    spin_down = False
+else:
+    spin_down = True
+
+result = I.cluster_spectral_function(blocks=True,file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15,spin_down=spin_down)
 
 # Generating local dos
 file_dos_qcm   = open(os.path.join(output_directory,'local_dos_qcm.dat'),'w')

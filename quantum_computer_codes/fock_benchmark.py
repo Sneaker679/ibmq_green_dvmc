@@ -11,7 +11,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,pdf_output_directory
+from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin,spin_gs,generate_npy,output_directory,pdf_output_directory
 from hamiltonian_circuit import t_fock
 
 
@@ -29,7 +29,7 @@ else:
 
 sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'))
 import fock_class as f
-import hubbard_classes as h
+from hubbard_classes import hubbard
 
 
 # Print options
@@ -187,7 +187,7 @@ def element(type,N,ex_state_left,ex_state_right,hubbard_output,lines_doc):
         return 0
 
 
-def matrix(type,lines_doc,N,spin_left,spin_right,t_mat_,U,mu,generate_npy):
+def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
     lines = [values for values in lines_doc if values[1] == 0]
@@ -199,7 +199,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,t_mat_,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = h.hubbard(N,t_mat_,U,mu,'yes',qis_not='N')
+    hubbard_output = hubbard(N,t_mat_,U,mu,spin_gs=spin_gs,manip='Y',qis_not='N')
     gs_block = hubbard_output[2]
     gs_numerical_state = hubbard_output[4]
     
@@ -211,8 +211,8 @@ def matrix(type,lines_doc,N,spin_left,spin_right,t_mat_,U,mu,generate_npy):
                     column_num = N * m + i
                     row_num = N * n + j
                     if column_num - row_num >= 0:
-                        ex_state_left = ex_state(type,i,m,spin_left,gs_block,gs_numerical_state,lines_doc)
-                        ex_state_right = ex_state(type,j,n,spin_right,gs_block,gs_numerical_state,lines_doc)
+                        ex_state_left = ex_state(type,i,m,spin,gs_block,gs_numerical_state,lines_doc)
+                        ex_state_right = ex_state(type,j,n,spin,gs_block,gs_numerical_state,lines_doc)
                         excitation_matrix[row_num,column_num] = element(type,N,ex_state_left,ex_state_right,hubbard_output,excit_document)
     
     # Filling all of the matrix
@@ -236,15 +236,15 @@ lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
         print(type+':')
-        print(matrix(type,lines_doc,N,spin_left,spin_right,t_fock,U,mu,generate_npy))
+        print(matrix(type,lines_doc,N,spin,spin_gs,t_fock,U,mu,generate_npy))
         print()
 else:
     print(type+':')
-    print(matrix(type,lines_doc,N,spin_left,spin_right,t_fock,U,mu,generate_npy))
+    print(matrix(type,lines_doc,N,spin,spin_gs,t_fock,U,mu,generate_npy))
     
 
 # Generating graph using graph.py
-omega = h.hubbard(N,t_fock,U,mu,qis_not='N')
+omega = hubbard(N,t_fock,U,mu,spin_gs=spin_gs,qis_not='N')
 verbose_read = 1
 from graph import dvmc_spectrum
 dvmc_spectrum(omega[0],verbose_read,'Y')

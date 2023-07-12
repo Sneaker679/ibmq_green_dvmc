@@ -18,7 +18,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_left,spin_right,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
 from hamiltonian_circuit import Hamiltonian, circuit
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
@@ -170,10 +170,10 @@ def Observable(type,ex_op_left,ex_op_right,hamiltonian):
 
 ## Calculation of the entire matrix using the quantum computer
 """qubit_Observable is the parallelized function."""
-def qubit_Observable(hamiltonian,spin_left,spin_right,lines_doc,type,i,m,j,n):
+def qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n):
     """ Parameters
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
-    spin_left/right: spin to be used on each side of the H and S matrices equation.
+    spin: spin to be used on each side of the H and S matrices equation.
     lines_doc: list form of the excitation.def document. Obtained with the excitdef_reader() function.    
     type: which matrix we are calculating (H+,H-,S+ or S-).
     i,m,j,n: parameters of the calculated element of the matrix. i,j are site numbers are m,n are excitation labels.
@@ -185,17 +185,17 @@ def qubit_Observable(hamiltonian,spin_left,spin_right,lines_doc,type,i,m,j,n):
     from qiskit_nature.second_q.operators import FermionicOp
     import numpy as np
 
-    ex_op_left = ex_operators(type,i,m,spin_left,lines_doc)
-    ex_op_right = ex_operators(type,j,n,spin_right,lines_doc)
+    ex_op_left = ex_operators(type,i,m,spin,lines_doc)
+    ex_op_right = ex_operators(type,j,n,spin,lines_doc)
     observable = Observable(type,ex_op_left,ex_op_right,hamiltonian)
     qubit_observable = JordanWignerMapper.mode_based_mapping(observable)
 
     return qubit_observable
 
-def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N'):
+def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
     """ Parameters
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
-    spin_left/right: spin to be used on each side of the H and S matrices equation.
+    spin: spin to be used on each side of the H and S matrices equation.
     lines_doc: list form of the excitation.def document. Obtained with the excitdef_reader() function.    
     type: which matrix we are calculating (H+,H-,S+ or S-).
     q_circuit: qiskit's quantum circuit object. In this case, it is our ground state.
@@ -229,7 +229,7 @@ def matrix(type,lines_doc,N,spin_left,spin_right,hamiltonian,q_circuit,save='N')
                         row_num = N * n + j
 
                         if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
-                            param.append((spin_left,spin_right,lines_doc,type,i,m,j,n))
+                            param.append((spin,lines_doc,type,i,m,j,n))
 
         '''Using the list of parameters, we use the defined pool to queue all the calculations at once.
         Each element of the matrix is equivalent to one process. When a process is done, the pool
@@ -289,8 +289,8 @@ if __name__ == '__main__':
     if generate_matrix.upper() == 'ALL':
         for type in ['H+','H-','S+','S-']:
             print('##### '+type+' #####')
-            print(matrix(type,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+            print(matrix(type,lines_doc,N,spin,Hamiltonian,circuit,generate_npy))
             print()
     else:
         print('##### '+generate_matrix+' #####')
-        print(matrix(generate_matrix,lines_doc,N,spin_left,spin_right,Hamiltonian,circuit,generate_npy))
+        print(matrix(generate_matrix,lines_doc,N,spin,Hamiltonian,circuit,generate_npy))

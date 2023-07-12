@@ -36,7 +36,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,U,output_directory,pdf_output_directory
+from parameters import N,U,output_directory,pdf_output_directory,mu
 from hamiltonian_circuit import omega
 print('GS energy:',omega)
 
@@ -123,6 +123,8 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   # eigenvalue decomposition of overlap matrix, S
   SV_AC, U_SVD_AC = eigh(S_AC)
   SV_CA, U_SVD_CA = eigh(S_CA)
+  HV_AC, U_HVD_AC = eigh(H_AC)
+  HV_CA, U_HVD_CA = eigh(H_CA)
   e = time.time()
   print("Diagonalization 1 : ", e-s)
 
@@ -134,8 +136,12 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   break_AC = False
   
   break_CA = False
+  HV_AC_tmp = HV_AC[::-1]
+  HV_CA_tmp = HV_CA[::-1]
   SV_AC_tmp = SV_AC[::-1]
   SV_CA_tmp = SV_CA[::-1]
+  #print(HV_AC_tmp)
+  #print(HV_CA_tmp)
   #print(SV_AC_tmp)
   #print(SV_CA_tmp)
 
@@ -154,7 +160,7 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
       break_CA = True
     if(break_AC and break_CA):
       break
-
+  
   print("number of states kept AC: ", nc_AC)
   print("number of states kept CA: ", nc_CA)
 
@@ -206,14 +212,20 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   e_ac2 = e_ac - Omega 
   e_ca2 = -e_ca + Omega
 
-  trim_inds = np.where(np.abs(e_ac)<1e-10)
-  e_ac_r = np.delete(e_ac,trim_inds)
-  u_ac_r = np.delete(u_ac,trim_inds,axis=1)
+  #trim_inds = np.where(np.abs(e_ac)<1e-10)
+  #e_ac_r = np.delete(e_ac,trim_inds)
+  #u_ac_r = np.delete(u_ac,trim_inds,axis=1)
+  #e_ac2_r = e_ac_r - Omega
+  e_ac_r = e_ac
+  u_ac_r = u_ac
   e_ac2_r = e_ac_r - Omega
 
-  trim_inds = np.where(np.abs(e_ca)<1e-10)
-  e_ca_r = np.delete(e_ca,trim_inds)
-  u_ca_r = np.delete(u_ca,trim_inds,axis=1)
+  #trim_inds = np.where(np.abs(e_ca)<1e-10)
+  #e_ca_r = np.delete(e_ca,trim_inds)
+  #u_ca_r = np.delete(u_ca,trim_inds,axis=1)
+  #e_ca2_r = -e_ca_r + Omega
+  e_ca_r = e_ca
+  u_ca_r = u_ca
   e_ca2_r = -e_ca_r + Omega
 
 
@@ -271,7 +283,7 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   '''
 
   # print solution for interface with QCM
-  #print_solution_for_QCM(params,u_ac2,e_ac2_r,u_ca2,e_ca2_r)
+  #print_solution_for_QCM(u_ac2,e_ac2_r,u_ca2,e_ca2_r)
 
   fig, ax = plt.subplots()
 
@@ -303,9 +315,40 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
   #matplotlib.use('Agg')
   plt.savefig(os.path.join(pdf_output_directory,file_name))
   #plt.show()
-  
+   
   sys.exit()  
 
+
+
+
+def print_solution_for_QCM(u_ac2,e_ac2,u_ca2,e_ca2):
+
+  f2 = open(outputDir+'/qmatrix.dat', 'w')
+
+  nac = u_ac2.T.shape[0]
+  nca = u_ca2.T.shape[0]
+
+  Np = nac+nca
+
+  sortinds = np.argsort(e_ac2)
+  e_ac2 = e_ac2[sortinds]
+  u_ac2 = u_ac2[:,sortinds]
+
+  sortinds = np.argsort(e_ca2)
+  e_ca2 = e_ca2[sortinds]
+  u_ca2 = u_ca2[:,sortinds]
+
+  qmat = np.zeros((nac+nca,u_ac2.T.shape[1]+1))
+  qmat[:nac,0]  = e_ac2
+  qmat[:nac,1:] = u_ac2.T
+  qmat[nac:,0]  = e_ca2
+  qmat[nac:,1:] = u_ca2.T
+
+  rows,cols = qmat.shape
+  for i in range(rows):
+    for j in range(cols):
+      f2.write("% 20.12e "%qmat[i,j])
+    f2.write("\n")
 
 
 if __name__ == '__main__':
