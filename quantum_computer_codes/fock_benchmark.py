@@ -11,7 +11,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin,spin_gs,generate_npy,output_directory,pdf_output_directory
+from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_green,spin_gs,generate_npy,output_directory,pdf_output_directory
 from hamiltonian_circuit import t_fock
 
 
@@ -232,19 +232,22 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     return excitation_matrix
 
 
+omega = hubbard(N,t_fock,U,mu,spin_gs=spin_gs,qis_not='Y')
+print('GS_block:',omega[2])
+print('GS_vector:',omega[1])
+print()
 lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
         print(type+':')
-        print(matrix(type,lines_doc,N,spin,spin_gs,t_fock,U,mu,generate_npy))
+        print(matrix(type,lines_doc,N,spin_green,spin_gs,t_fock,U,mu,generate_npy))
         print()
 else:
     print(type+':')
-    print(matrix(type,lines_doc,N,spin,spin_gs,t_fock,U,mu,generate_npy))
+    print(matrix(type,lines_doc,N,spin_green,spin_gs,t_fock,U,mu,generate_npy))
     
 
 # Generating graph using graph.py
-omega = hubbard(N,t_fock,U,mu,spin_gs=spin_gs,qis_not='N')
 verbose_read = 1
 from graph import dvmc_spectrum
 dvmc_spectrum(omega[0],verbose_read,'Y')

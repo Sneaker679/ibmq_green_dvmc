@@ -3,15 +3,15 @@
 # For no: 'N'
 
 # Physic parameters
-N = 4                                           # Number of sites.
+N = 2                                           # Number of sites.
 t = -1
 U = 4
-mu = 2
-spin = '+'                                 # Either '+' or '-'.
+mu = -0.7
+spin_green = '+'                                 # Either '+' or '-'.
 spin_gs = '+'
 
 # Code parameters
-use_qcm = 'N'
+use_qcm = 'Y'
 force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 decompose_and_print_circuit = 'N'
@@ -123,11 +123,11 @@ circuit.swap(1,2)
 '''
 '''
 Circuit for 2 sites, mu=-0.7
-
+'''
 circuit.h(3)
 circuit.cx(3,1)
 circuit.x(3)
-'''
+
 ####################################
 
 

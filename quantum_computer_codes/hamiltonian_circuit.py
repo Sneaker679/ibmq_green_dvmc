@@ -152,13 +152,18 @@ if force_custom_circuit.upper() == 'N':
 
     gs_index = 0
     while True:
-        if spin_gs not in ['+','-']:
-            raise Exception("spin_gs must be either '+' or '-'.")
+        if spin_gs not in ['+','-','0']:
+            raise Exception("spin_gs must be either '+', '-' or '0'.")
  
         vec = eigen_states[:,gs_index].real.tolist()
         if spin_gs == '+':
             vec_spin = find_vector_spin(vec) 
-            if vec_spin >= 0:
+            if vec_spin > 0:
+                break
+
+        if spin_gs == '0':
+            vec_spin = find_vector_spin(vec) 
+            if vec_spin == 0:
                 break
             
         if spin_gs == '-':

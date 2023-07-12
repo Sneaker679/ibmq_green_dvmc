@@ -172,13 +172,12 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
         block_len = len(block)
         
         # We only consider the blocks that fit the ground state we are after. Positive total spin or Negative total spin.
-        if (spin_gs == '+' and block_spin >= 0) or (spin_gs == '-' and block_spin <= 0):
-            if (gs_energy == gs_energy_block and block_len >= gs_len) or (gs_energy > gs_energy_block):
+        if (spin_gs == '+' and block_spin > 0) or (spin_gs == '-' and block_spin < 0) or (spin_gs == '0' and block_spin == 0):
+            if gs_energy > gs_energy_block:
                 gs_block_matrix = block_matrix
                 gs_numerical_state = numerical_states[:,0].transpose()
                 gs_block_num = block_num
                 gs_energy = gs_energy_block
-                gs_len = len(block_num)
                 if manip.upper() == 'Y':
                     gs_block = block
 
@@ -221,4 +220,4 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
     if manip.upper() == 'Y':
         return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
 
-#print(hubbard(mu=5,prt='Y',spin_gs='-',qis_not='Y'))
+#print(hubbard(mu=-0.7,spin_gs='-',qis_not='Y'))      

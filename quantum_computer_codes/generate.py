@@ -18,7 +18,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
+from parameters import N,t,U,mu,generate_matrix,excit_document,spin_green,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
 from hamiltonian_circuit import Hamiltonian, circuit
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
@@ -285,12 +285,15 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
 
 
 if __name__ == '__main__':
+    sv = Statevector.from_instruction(circuit)
+    print('GS_vector:',sv.to_dict())
+    print()
     lines_doc = excitdef_reader(excit_document,excitation_directory)
     if generate_matrix.upper() == 'ALL':
         for type in ['H+','H-','S+','S-']:
             print('##### '+type+' #####')
-            print(matrix(type,lines_doc,N,spin,Hamiltonian,circuit,generate_npy))
+            print(matrix(type,lines_doc,N,spin_green,Hamiltonian,circuit,generate_npy))
             print()
     else:
         print('##### '+generate_matrix+' #####')
-        print(matrix(generate_matrix,lines_doc,N,spin,Hamiltonian,circuit,generate_npy))
+        print(matrix(generate_matrix,lines_doc,N,spin_green,Hamiltonian,circuit,generate_npy))

@@ -10,7 +10,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,spin,spin_gs,output_directory,pdf_output_directory
+from parameters import N,t,U,mu,spin_green,spin_gs,output_directory,pdf_output_directory
 from hamiltonian_circuit import model
 
 
@@ -28,15 +28,19 @@ for Ne in range(N+1):
     S = -Ne
     for m in range(Ne+1):
         if spin_gs == '+':
-            if S >= 0:
+            if S > 0:
+                sec += new_sector(N,Ne)
+        if spin_gs == '0':
+            if S == 0:
                 sec += new_sector(N,Ne)
         if spin_gs == '-':
-            if S <= 0:
+            if S < 0:
                 sec += new_sector(N,Ne)
 
         S = S+2
     Ne += 1
 sec = sec[1:]
+#print(sec)
 
 # Targeting sectors and setting parameters.
 model.set_target_sectors([sec])
@@ -49,7 +53,7 @@ mu = {mu}
 # Calculating the Ground State Energy.
 I = pyqcm.model_instance(model)
 gs = I.ground_state(pr=False)
-
+'''
 if len(gs[0][1].split('/')) > 1:
     new_sectors = gs[0][1].split('/')
     for index,sector in enumerate(new_sectors):
@@ -62,10 +66,11 @@ if len(gs[0][1].split('/')) > 1:
     model.set_target_sectors([f'{new_sectors}'])
     I = pyqcm.model_instance(model)
     gs = I.ground_state(pr=False)
+'''
 print(gs)
 
 # Generating PDF
-if spin == '+':
+if spin_green == '+':
     spin_down = False
 else:
     spin_down = True
