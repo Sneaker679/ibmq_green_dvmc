@@ -28,13 +28,10 @@ for Ne in range(N+1):
     S = -Ne
     for m in range(Ne+1):
         if spin_gs == '+':
-            if S > 0:
-                sec += new_sector(N,Ne)
-        if spin_gs == '0':
-            if S == 0:
+            if S >= 0:
                 sec += new_sector(N,Ne)
         if spin_gs == '-':
-            if S < 0:
+            if S <= 0:
                 sec += new_sector(N,Ne)
 
         S = S+2
@@ -53,20 +50,23 @@ mu = {mu}
 # Calculating the Ground State Energy.
 I = pyqcm.model_instance(model)
 gs = I.ground_state(pr=False)
-'''
+
+previous_S_value = 64
 if len(gs[0][1].split('/')) > 1:
     new_sectors = gs[0][1].split('/')
+    #print(new_sectors)
     for index,sector in enumerate(new_sectors):
         sector_list = sector.split(':')
-        if int(sector_list[2][-1]) == 0:
-           del new_sectors[index]
-    new_sectors = new_sectors[:9]
-    if new_sectors[-1] == ':':
-        new_sectors = new_sectors[0][:8]
-    model.set_target_sectors([f'{new_sectors}'])
+        S_value = int(sector_list[2][1:])
+        if ((spin_gs == '+' and S_value < previous_S_value and S_value >= 0)
+        or (spin_gs == '-' and S_value > previous_S_value and S_value <= 0)):
+            desired_block_index = index
+            previous_S_value = S_value
+
+    model.set_target_sectors([f'{new_sectors[index]}'])
     I = pyqcm.model_instance(model)
     gs = I.ground_state(pr=False)
-'''
+
 print(gs)
 
 # Generating PDF

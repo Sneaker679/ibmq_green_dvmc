@@ -1,4 +1,5 @@
 from fock_class import Fock
+from math import isclose
 import numpy as np
 import copy
 import time
@@ -38,13 +39,17 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
     bank = [state_num for state_num in range(4**N)]
 
     # Defined for later
-    gs_energies = []
     gs_energy = 1e5
+    gs_energies = []
+    gs_numerical_states = []
+    gs_states = []
+    gs_blocks = []
 
     if manip.upper() == 'Y':
         blocks_matrix = []
         blocks_num = []
         blocks = []
+        gs_blocks_matrix = []
         for x in range(2*N + 1):
             blocks_matrix.append([])
             blocks_num.append([])
@@ -172,14 +177,19 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
         block_len = len(block)
         
         # We only consider the blocks that fit the ground state we are after. Positive total spin or Negative total spin.
-        if (spin_gs == '+' and block_spin > 0) or (spin_gs == '-' and block_spin < 0) or (spin_gs == '0' and block_spin == 0):
-            if gs_energy > gs_energy_block:
-                gs_block_matrix = block_matrix
-                gs_numerical_state = numerical_states[:,0].transpose()
-                gs_block_num = block_num
+        if (spin_gs == '+' and block_spin >= 0) or (spin_gs == '-' and block_spin <= 0):
+            if gs_energy >= gs_energy_block:
+                if gs_energy > gs_energy_block:
+                    gs_blocks_matrix = []
+                    gs_blocks_num = []
+                    gs_numerical_states = []
+                    gs_blocks = []
+                gs_blocks_matrix.append(block_matrix)
+                gs_blocks_num.append(block_num)
+                gs_numerical_states.append(numerical_states[:,0].transpose())
                 gs_energy = gs_energy_block
                 if manip.upper() == 'Y':
-                    gs_block = block
+                    gs_blocks.append(block)
 
         if prt.upper() == 'Y':
             print('States:',block_num)
@@ -211,13 +221,24 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
         print()
         print()
         print('gs_energy:',gs_energy)
-        print('gs_state\n',gs_numerical_state)
-        print('gs_bloc:\n',gs_block_matrix)
+        print('gs_states:')
+        for state in gs_numerical_states:
+            print(state)
+        print('gs_blocks_matrix:')
+        for matrix in gs_blocks_matrix:
+            print(matrix)
         print()
 
     if manip.upper() == 'N':
-        return gs_energy,gs_numerical_state,gs_block_num,gs_block_matrix
+        return gs_energy,gs_numerical_states,gs_blocks_num,gs_blocks_matrix
     if manip.upper() == 'Y':
-        return blocks_matrix,blocks_num,gs_block,blocks,gs_numerical_state
-
-#print(hubbard(mu=-0.7,spin_gs='-',qis_not='Y'))      
+        return blocks_matrix,blocks_num,gs_blocks,blocks,gs_numerical_states
+'''
+t = np.matrix([
+    [0,1,1,0],
+    [1,0,0,1],
+    [1,0,0,1],
+    [0,1,1,0]
+])
+'''
+#print(hubbard(N=4,t=t,mu=6,prt='Y',spin_gs='+',qis_not='Y',manip='N'))

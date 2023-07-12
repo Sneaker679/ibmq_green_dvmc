@@ -3,15 +3,15 @@
 # For no: 'N'
 
 # Physic parameters
-N = 2                                           # Number of sites.
+N = 2                                            # Number of sites.
 t = -1
 U = 4
-mu = -0.7
+mu = -1
 spin_green = '+'                                 # Either '+' or '-'.
-spin_gs = '+'
+spin_gs = '+'                                    # Either '+' or '-'.
 
 # Code parameters
-use_qcm = 'Y'
+use_qcm = 'N'
 force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 decompose_and_print_circuit = 'N'

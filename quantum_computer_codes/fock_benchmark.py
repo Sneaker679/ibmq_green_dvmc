@@ -129,15 +129,29 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
     
     return excited_block
 
+def choose_gs(gs_blocks,gs_numerical_states):
+    final_spin = gs_blocks[0][0].total_spin
+    for index,block in enumerate(gs_blocks):
+        new_spin = block[0].total_spin
+        if ((spin_gs == '+' and 0 <= new_spin and new_spin < final_spin)
+        or (spin_gs == '-' and 0 >= new_spin and new_spin > final_spin)):
+            final_spin = new_spin
+    gs_block = gs_blocks[index]
+    gs_numerical_state = gs_numerical_states[index]
+    return gs_block,gs_numerical_state
+
 def element(type,N,ex_state_left,ex_state_right,hubbard_output,lines_doc):
 
     # Defining the outputs of the hubbard() function
     blocks_matrix = hubbard_output[0]
     blocks_num = hubbard_output[1]
-    gs_block = hubbard_output[2]
     blocks = hubbard_output[3]
-    gs_numerical_state = hubbard_output[4]
+    gs_blocks = hubbard_output[2]
+    gs_numerical_states = hubbard_output[4]
     
+    # Choose gs_block and gs_numerical_state
+    gs_block,gs_numerical_state = choose_gs(gs_blocks,gs_numerical_states)
+
     # Initializing a list that will contain the results of the distribution of the multiplication of the excited states with the hamiltonian
     scalar = []
     
@@ -199,9 +213,12 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = hubbard(N,t_mat_,U,mu,spin_gs=spin_gs,manip='Y',qis_not='N')
-    gs_block = hubbard_output[2]
-    gs_numerical_state = hubbard_output[4]
+    hubbard_output = hubbard(N,t_mat_,U,mu,spin_gs=spin_gs,manip='Y',qis_not='Y')
+    gs_blocks = hubbard_output[2]
+    gs_numerical_states = hubbard_output[4]
+    
+    # Choose gs_block and gs_numerical_state
+    gs_block,gs_numerical_state = choose_gs(gs_blocks,gs_numerical_states)
     
     # Filling half of the matrix
     for i in range(N):
@@ -233,9 +250,9 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
 
 
 omega = hubbard(N,t_fock,U,mu,spin_gs=spin_gs,qis_not='Y')
-print('GS_block:',omega[2])
-print('GS_vector:',omega[1])
-print()
+#print('GS_block:',omega[2])
+#print('GS_vector:',omega[1])
+#print()
 lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:

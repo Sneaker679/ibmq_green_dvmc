@@ -1,4 +1,5 @@
 ### Packages ################################################
+from math import isclose
 import matplotlib.pyplot as plt
 import numpy as np
 import sys,os
@@ -140,7 +141,9 @@ if force_custom_circuit.upper() == 'N':
     """We calculate the exact ground state and use that vector to initialize the qubits."""
     print('Using exact diagonalisation for the ground state circuit...')
 
-    eigen_states = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)[1]
+    eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
+    eigen_states = eigen[1] 
+    eigen_energies = eigen[0]
 
     def find_vector_spin(vec):
         tol = 0.00001
@@ -150,32 +153,31 @@ if force_custom_circuit.upper() == 'N':
                 break
         return vec_spin
 
-    gs_index = 0
-    while True:
+    gs_eigen_energies = []
+    gs_energy = eigen_energies[0]
+    tol = 1e-5
+    for energy in eigen_energies:
+        if isclose(energy, gs_energy, rel_tol=tol):
+            gs_eigen_energies.append(energy)
+        else:
+            break
+
+    eigen_states_list = []
+    for index in range(len(gs_eigen_energies)):
+        eigen_states_list.append(eigen_states[:,index])
+
+    for vec in eigen_states_list:
         if spin_gs not in ['+','-','0']:
             raise Exception("spin_gs must be either '+', '-' or '0'.")
- 
-        vec = eigen_states[:,gs_index].real.tolist()
-        if spin_gs == '+':
-            vec_spin = find_vector_spin(vec) 
-            if vec_spin > 0:
-                break
-
-        if spin_gs == '0':
-            vec_spin = find_vector_spin(vec) 
-            if vec_spin == 0:
-                break
-            
-        if spin_gs == '-':
-            vec_spin = find_vector_spin(vec) 
-            if vec_spin < 0:
-                break
-
-        gs_index += 1
+        
+        vec_spin = find_vector_spin(vec)
+        if ((spin_gs == '+' and (vec_spin > 0 or vec_spin == 0))
+        or (spin_gs == '-' and (vec_spin < 0 or vec_spin == 0))):
+            gs_vec = vec 
 
     q = QuantumRegister(2*N)
     qc = QuantumCircuit(q)
-    qc.initialize(vec,q)
+    qc.initialize(gs_vec,q)
     if decompose_and_print_circuit == 'Y':
         circuit = qc.decompose(reps=4*N)
         print(circuit)
@@ -190,8 +192,6 @@ else:
     print('Using custom ground state circuit...')
 print()
 
-#sv = Statevector.from_instruction(circuit)
-#print(sv.to_dict())
 #######################################################
 
 

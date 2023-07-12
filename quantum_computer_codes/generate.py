@@ -285,9 +285,6 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
 
 
 if __name__ == '__main__':
-    sv = Statevector.from_instruction(circuit)
-    print('GS_vector:',sv.to_dict())
-    print()
     lines_doc = excitdef_reader(excit_document,excitation_directory)
     if generate_matrix.upper() == 'ALL':
         for type in ['H+','H-','S+','S-']:
