@@ -37,7 +37,6 @@ for Ne in range(N+1):
         S = S+2
     Ne += 1
 sec = sec[1:]
-#print(sec)
 
 # Targeting sectors and setting parameters.
 model.set_target_sectors([sec])
@@ -54,7 +53,6 @@ gs = I.ground_state(pr=False)
 previous_S_value = 64
 if len(gs[0][1].split('/')) > 1:
     new_sectors = gs[0][1].split('/')
-    #print(new_sectors)
     for index,sector in enumerate(new_sectors):
         sector_list = sector.split(':')
         S_value = int(sector_list[2][1:])
@@ -63,7 +61,7 @@ if len(gs[0][1].split('/')) > 1:
             desired_block_index = index
             previous_S_value = S_value
 
-    model.set_target_sectors([f'{new_sectors[index]}'])
+    model.set_target_sectors([f'{new_sectors[desired_block_index]}'])
     I = pyqcm.model_instance(model)
     gs = I.ground_state(pr=False)
 

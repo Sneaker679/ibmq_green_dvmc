@@ -6,7 +6,7 @@
 N = 2                                            # Number of sites.
 t = -1
 U = 4
-mu = -1
+mu = 2
 spin_green = '+'                                 # Either '+' or '-'.
 spin_gs = '+'                                    # Either '+' or '-'.
 
@@ -107,7 +107,7 @@ t_fock = np.matrix([
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
 '''
-Circuit for 2 sites, mu=2
+#Circuit for 2 sites, mu=2
 
 theta = 2*1.178097245
 circuit.ry(theta, 2)
@@ -122,12 +122,12 @@ circuit.cz(1,2)
 circuit.swap(1,2)
 '''
 '''
-Circuit for 2 sites, mu=-0.7
-'''
+#Circuit for 2 sites, mu=-0.7
+
 circuit.h(3)
 circuit.cx(3,1)
 circuit.x(3)
-
+'''
 ####################################
 
 
