@@ -1,5 +1,6 @@
 ### Packages ################################################
 import numpy as np
+from mpire import WorkerPool
 import copy
 import time
 import sys,os
@@ -140,7 +141,7 @@ def choose_gs(gs_blocks,gs_numerical_states):
     gs_numerical_state = gs_numerical_states[index]
     return gs_block,gs_numerical_state
 
-def element(type,N,ex_state_left,ex_state_right,hubbard_output,lines_doc):
+def element(type,N,ex_state_left,ex_state_right,hubbard_output):
 
     # Defining the outputs of the hubbard() function
     blocks_matrix = hubbard_output[0]
@@ -201,6 +202,15 @@ def element(type,N,ex_state_left,ex_state_right,hubbard_output,lines_doc):
         return 0
 
 
+def parrallelized_element(shared_lists,spin,type,i,m,j,n):
+    import numpy as np
+
+    ex_state_left = ex_state(type,i,m,spin,shared_lists[1],shared_lists[2],shared_lists[3])
+    ex_state_right = ex_state(type,j,n,spin,shared_lists[1],shared_lists[2],shared_lists[3])
+    ele = element(type,N,ex_state_left,ex_state_right,shared_lists[0])
+    return ele
+ 
+
 def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
@@ -221,17 +231,31 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     gs_block,gs_numerical_state = choose_gs(gs_blocks,gs_numerical_states)
     
     # Filling half of the matrix
-    for i in range(N):
-        for j in range(N):
-            for m in range(N_exc):
-                for n in range(N_exc): 
-                    column_num = N * m + i
-                    row_num = N * n + j
-                    if column_num - row_num >= 0:
-                        ex_state_left = ex_state(type,i,m,spin,gs_block,gs_numerical_state,lines_doc)
-                        ex_state_right = ex_state(type,j,n,spin,gs_block,gs_numerical_state,lines_doc)
-                        excitation_matrix[row_num,column_num] = element(type,N,ex_state_left,ex_state_right,hubbard_output,excit_document)
-    
+    shared_lists = (hubbard_output,gs_block,gs_numerical_state,lines_doc)
+    with WorkerPool(n_jobs=None,shared_objects=(shared_lists)) as pool:
+        param = []
+        for n in range(N_exc):
+            for j in range(N):
+                for m in range(N_exc):
+                    for i in range(N):
+                        column_num = N * m + i
+                        row_num = N * n + j
+
+                        if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                            param.append((spin,type,i,m,j,n))
+
+        values = pool.map(parrallelized_element,param,progress_bar=True)
+
+    # Filling matrix
+    correction = 0
+    row = 0
+    for column,value in enumerate(values):
+        column = column + correction
+        excitation_matrix[row,column] = value
+        if column == N*N_exc-1:
+            row += 1
+            correction += -N*N_exc + row
+
     # Filling all of the matrix
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix    
 

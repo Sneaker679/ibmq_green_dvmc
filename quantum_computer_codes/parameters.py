@@ -10,7 +10,7 @@ backend_device = "ibm_sherbrooke"
     #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Physic parameters
-N = 2                                            # Number of sites.
+N = 6                                            # Number of sites.
 t = -1
 U = 4
 mu = 2
@@ -18,7 +18,7 @@ spin_green = '+'                                 # Either '+' or '-'.
 spin_gs = '+'                                    # Either '+' or '-'.
 
 # Code parameters
-use_qcm = 'N'
+use_qcm = 'Y'
 force_custom_lattice = 'N'
 force_custom_circuit = 'N'
 decompose_and_print_circuit = 'N'

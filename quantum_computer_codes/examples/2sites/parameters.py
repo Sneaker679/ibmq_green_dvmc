@@ -2,13 +2,20 @@
 # For yes: 'Y'
 # For no: 'N'
 
+# IBM Credentials and bakcend
+run_on_quantum_computer = 'N'
+channel = "ibm_quantum"
+token = "MY_API_TOKEN"
+backend_device = "ibm_sherbrooke"
+    #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
+
 # Physic parameters
-N = 4                                           # Number of sites.
+N = 2                                            # Number of sites.
 t = -1
 U = 4
 mu = 2
-spin = '+'                                 # Either '+' or '-'.
-spin_gs = '+'
+spin_green = '+'                                 # Either '+' or '-'.
+spin_gs = '+'                                    # Either '+' or '-'.
 
 # Code parameters
 use_qcm = 'N'
@@ -19,12 +26,11 @@ generate_npy = 'Y'
 generate_matrix = 'ALL'                         # 'H+','H-','S+','S-' or 'ALL'.
 excit_document = f'excitation{N}sites.def'
 
-# Simulation parameters
+# Noisy simulation parameters
 noisy_simulation = 'N'
 """These options below do not seem to have an effect on the simulation. Qiskit is bugged."""
 estimator_options = {
         'method': 'automatic',
-        #'executor':, 
         'device': 'CPU',
         'precision': 'double',
         'max_job_size': 8,
@@ -37,6 +43,7 @@ estimator_options = {
 """More info about these options here:
 https://qiskit.org/ecosystem/aer/stubs/qiskit_aer.QasmSimulator.html
 """
+
 
 ############### PACKAGES ################
 import matplotlib as mpl
@@ -107,7 +114,7 @@ t_fock = np.matrix([
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
 '''
-Circuit for 2 sites, mu=2
+#Circuit for 2 sites, mu=2
 
 theta = 2*1.178097245
 circuit.ry(theta, 2)
@@ -122,7 +129,7 @@ circuit.cz(1,2)
 circuit.swap(1,2)
 '''
 '''
-Circuit for 2 sites, mu=-0.7
+#Circuit for 2 sites, mu=-0.7
 
 circuit.h(3)
 circuit.cx(3,1)
