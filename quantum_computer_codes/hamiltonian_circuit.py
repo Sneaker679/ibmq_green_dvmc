@@ -31,6 +31,7 @@ from fock_class import Fock
 
 if use_qcm == 'Y':
     import pyqcm
+
 #################### LATTICE SETUP ##########################
 
 """This loops checks if the number of site can be made into a grid of sites.

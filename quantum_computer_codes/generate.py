@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
 from mpire import WorkerPool
+from qiskit_ibm_runtime import QiskitRuntimeService
+from qiskit_ibm_runtime import Estimator as QC_Estimator
 from qiskit_aer.primitives import Estimator as Noisy_Estimator
 from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -18,7 +20,14 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,generate_matrix,excit_document,spin_green,generate_npy,output_directory,excit_document,estimator_options,noisy_simulation
+from parameters import (
+    N,t,U,mu,spin_green,
+    generate_matrix,generate_npy,
+    excit_document,output_directory,
+    estimator_options,
+    noisy_simulation,run_on_quantum_computer,
+    token,channel,backend_device
+)
 from hamiltonian_circuit import Hamiltonian, circuit
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
@@ -33,8 +42,14 @@ else:
     print('Using the excitation.def files included with the code.\n')
 
 
-# Print options
+### Print options ##########################################
 np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
+
+
+### IBM Service ############################################
+if run_on_quantum_computer == 'Y':
+    service = QiskitRuntimeService(channel=channel, token=token)
+    backend = service.get_backend(backend_device)
 
 
 ### FUNCTIONS ###############################################
@@ -241,11 +256,17 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
 
     # Starting quantum simulation
     if noisy_simulation == 'Y':
-        backend = Noisy_Estimator(backend_options=estimator_options)
+        estimator = Noisy_Estimator(backend_options=estimator_options)
+    elif run_on_quantum_computer == 'Y':
+        estimator = QC_Estimator(backend = backend)
     else:
-        backend = Estimator()
-    job = backend.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
-    print('Quantum Computer simulation...')
+        estimator = Estimator()
+    job = estimator.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+    if not run_on_quantum_computer == 'Y':
+        print('Quantum Computer simulation...')
+    else:
+        print(f">>> Job ID: {job.job_id()}")
+        print(f">>> Job Status: {job.status()}")
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
