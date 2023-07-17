@@ -5,13 +5,13 @@
 # IBM Credentials and bakcend
 run_on_quantum_computer = False
 channel = "ibm_quantum"
-token = "MY_API_TOKEN"
-backend_device = "ibm_sherbrooke"
+token = "token"
+backend_device = "ibmq_quito"
     #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 
 # Physic parameters
-N = 2                                            # Number of sites.
+N = 2
 t = -1
 U = 4
 mu = 2

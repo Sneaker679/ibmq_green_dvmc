@@ -1,33 +1,40 @@
 ############## PARAMETERS ###############
-# For yes: 'Y'
-# For no: 'N'
+# For yes: True
+# For no: False
 
 # IBM Credentials and bakcend
-run_on_quantum_computer = 'N'
+run_on_quantum_computer = False
 channel = "ibm_quantum"
-token = "MY_API_TOKEN"
-backend_device = "ibm_sherbrooke"
+token = "token"
+backend_device = "ibmq_quito"
     #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
+
 # Physic parameters
-N = 2                                            # Number of sites.
+N = 2
 t = -1
 U = 4
 mu = 2
 spin_green = '+'                                 # Either '+' or '-'.
 spin_gs = '+'                                    # Either '+' or '-'.
 
+
 # Code parameters
-use_qcm = 'N'
-force_custom_lattice = 'N'
-force_custom_circuit = 'N'
-decompose_and_print_circuit = 'N'
-generate_npy = 'Y' 
-generate_matrix = 'ALL'                         # 'H+','H-','S+','S-' or 'ALL'.
+use_qcm = False
+
+force_custom_lattice = False
+hopping_matrix_for_qiskit_lattice = True
+
+force_custom_circuit = False
+decompose_and_print_circuit = False
+
+generate_npy = True
+generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
 excit_document = f'excitation{N}sites.def'
 
+
 # Noisy simulation parameters
-noisy_simulation = 'N'
+noisy_simulation = False
 """These options below do not seem to have an effect on the simulation. Qiskit is bugged."""
 estimator_options = {
         'method': 'automatic',
@@ -49,9 +56,9 @@ https://qiskit.org/ecosystem/aer/stubs/qiskit_aer.QasmSimulator.html
 import matplotlib as mpl
 from qiskit import QuantumCircuit,QuantumRegister
 from qiskit_nature.second_q.hamiltonians.lattices import (
+    Lattice,
     BoundaryCondition,
     HyperCubicLattice,
-    Lattice,
     LatticeDrawStyle,
     LineLattice,
     SquareLattice,
@@ -65,11 +72,25 @@ if use_qcm == 'Y':
 
 #########################################
 ####### INPUT CUSTOM LATTICE HERE #######
+#######   affects qiskit only     #######
 #########################################
 boundary_condition = BoundaryCondition.OPEN
 lattice = LineLattice(num_nodes = N, boundary_condition = boundary_condition)
-#lattice.draw()
-#plt.show()
+#########################################
+
+
+#########################################
+####  INPUT CUSTOM t HOPPING MATRIX  ####
+#### affects qiskit and fock's basis ####
+#########################################
+
+# A possible hopping is 1
+# No possible hopping is 0
+hopping_matrix = np.matrix([
+    [0,1],
+    [1,0]
+])
+
 #########################################
 
 factors = []
@@ -94,17 +115,6 @@ if (use_qcm == 'Y' and force_custom_lattice == 'Y') or (use_qcm == 'Y' and len(f
     model.hopping_operator('t', (1,0,0), -1)  # NN hopping
     model.hopping_operator('t', (0,1,0), -1)  # NN hopping
     #####################################
-
-
-#########################################
-##### INPUT CUSTOM t HOPPING MATRIX #####
-#########################################
-t_fock = np.matrix([
-    [0,t],
-    [t,0]
-])
-#########################################
-
 
 
 ####################################
