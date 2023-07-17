@@ -78,7 +78,7 @@ if (len(sys.argv)>=6):
 
 
 # Function that calculates the green function and outputs a pdf of it.
-def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
+def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = False):
 
   sum_rule_max = sum_rule_max_ok
   sum_rule_min = sum_rule_min_ok
@@ -95,7 +95,7 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
 
   stot = time.time()
   #s = time.time()
-  if fock_benchmarking == 'Y':
+  if fock_benchmarking is True:
       S_CA = np.load(os.path.join(outputDir,'S_CA_fock.npy'))
       S_AC = np.load(os.path.join(outputDir,'S_AC_fock.npy'))
       H_CA = np.load(os.path.join(outputDir,'H_CA_fock.npy'))
@@ -294,7 +294,7 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = 'N'):
     ax.plot([w_.min(),w_.max()],[ii*shift,ii*shift],c='black')
   
   # local dos
-  if fock_benchmarking == 'Y':
+  if fock_benchmarking is True:
     dos_name = 'local_dos_fock.dat'
     file_name = 'fock_spectrum.pdf'
   else:

@@ -1,5 +1,4 @@
 ### Packages ################################################
-import pyqcm
 import numpy as np
 import sys,os
 
@@ -10,9 +9,16 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,U,mu,spin_green,spin_gs,output_directory,pdf_output_directory
-from hamiltonian_circuit import model
+from parameters import use_qcm,N,t,U,mu,spin_green,spin_gs,output_directory,pdf_output_directory
 
+if use_qcm is False:
+    print()
+    print('Skipping the qcm benchmark since use_qcm == "N" in parameters.py.')
+    print()
+    sys.exit()
+
+import pyqcm
+from hamiltonian_circuit import model
 
 # Making a list of sectors where the GS probably is.
 sec = ''

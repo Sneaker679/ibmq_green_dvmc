@@ -47,7 +47,7 @@ np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
 
 
 ### IBM Service ############################################
-if run_on_quantum_computer == 'Y':
+if run_on_quantum_computer is True:
     service = QiskitRuntimeService(channel=channel, token=token)
     backend = service.get_backend(backend_device)
 
@@ -207,7 +207,7 @@ def qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n):
 
     return qubit_observable
 
-def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
+def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
     """ Parameters
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
     spin: spin to be used on each side of the H and S matrices equation.
@@ -255,18 +255,18 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
         observables = pool.map(qubit_Observable,param,progress_bar=True)
 
     # Starting quantum simulation
-    if noisy_simulation == 'Y':
+    if noisy_simulation is True:
         estimator = Noisy_Estimator(backend_options=estimator_options)
-    elif run_on_quantum_computer == 'Y':
+    elif run_on_quantum_computer is True:
         estimator = QC_Estimator(backend = backend)
     else:
         estimator = Estimator()
     job = estimator.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
-    if not run_on_quantum_computer == 'Y':
-        print('Quantum Computer simulation...')
-    else:
+    if run_on_quantum_computer is True:
         print(f">>> Job ID: {job.job_id()}")
         print(f">>> Job Status: {job.status()}")
+    else:
+        print('Quantum Computer simulation...')
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
@@ -291,7 +291,7 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save='N'):
     # Symmetrizing the matrix
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix
 
-    if save.upper() == 'Y':
+    if save is True:
         if type[1] == '+':
             identifier = '_AC'
         if type[1] == '-':

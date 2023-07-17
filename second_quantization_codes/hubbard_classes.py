@@ -23,16 +23,16 @@ Or when manip = 'Y':
 - The ground state vector
 """
 
-def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt='N',qis_not='N'):
+def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+',manip=False,prt=False,qis_not=False):
     """Parameters
     N: Number of sites
     t: Hopping matrix
     U: Potential energy
     mu: Chemical potential
     spin_gs: The total spin the ground state should have ('+' or '-')
-    manip: Y or N parameter that dictates if the function should return way more things (list is above). This can be heavy on the memory.
-    prt: Y or N parameter that dictates if the function should print some of the information in the CMD.
-    qis_not: Y or N parameter that dictates if the calculation should be made using qiskit's Fock basis notation (|0up 0down 1up 1down ...>).
+    manip: Boolean parameter that dictates if the function should return way more things (list is above). This can be heavy on the memory.
+    prt: Boolean parameter that dictates if the function should print some of the information in the CMD.
+    qis_not: Boolean parameter that dictates if the calculation should be made using qiskit's Fock basis notation (|0up 0down 1up 1down ...>).
     """
 
     # The bank is a list of states that are yet to be operated on to determine which block is belongs to.
@@ -45,7 +45,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
     gs_states = []
     gs_blocks = []
 
-    if manip.upper() == 'Y':
+    if manip is True:
         blocks_matrix = []
         blocks_num = []
         blocks = []
@@ -66,7 +66,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
         for state in block:
             for i in range(N):
                 for j in range(N):
-                    if not i == j and not t[i,j] == 0 :
+                    if not i == j and not hopping_matrix[i,j] == 0 :
                         for spin in ['+','-']:
                             """We apply creation/annihilation operators on initial state to calculate 
                             the other states in the same block."""
@@ -109,7 +109,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
             site1 = hopping[0].index(-1)
             site2 = hopping[0].index(1)
 
-            if qis_not == 'N':
+            if qis_not is False:
                 if site1 > N - 1:
                     site1 = int(site1 - N)
                     site2 = int(site2 - N)
@@ -122,7 +122,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
                     site2 = int(site2/2)
                 else:
                     site2 = int((site2-1)/2)
-            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = t[site1,site2]*tuple[1].sign
+            block_matrix[block_num.index(tuple[0].num),block_num.index(tuple[1].num)] = t*hopping_matrix[site1,site2]*tuple[1].sign
 
         # We add the potential term in the hamiltonian block
         if not U == 0: 
@@ -188,16 +188,16 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
                 gs_blocks_num.append(block_num)
                 gs_numerical_states.append(numerical_states[:,0].transpose())
                 gs_energy = gs_energy_block
-                if manip.upper() == 'Y':
+                if manip is True:
                     gs_blocks.append(block)
 
-        if prt.upper() == 'Y':
+        if prt is True:
             print('States:',block_num)
             print(block_matrix)
             print('gs_energy_block:',gs_energy_block)
             print()
         
-        if manip.upper() == 'Y':
+        if manip is True:
             blocks_matrix[block[0].num_electrons].append(block_matrix)
             blocks[block[0].num_electrons].append(block)
     
@@ -205,7 +205,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
     def spin_sorting(object_list):
         return object_list[0][0].total_spin
    
-    if manip.upper() == 'Y':
+    if manip is True:
         for index,blocks_ele in enumerate(blocks):
             blocks_matrix_ele = blocks_matrix[index]
             blocks[index] = [x for x, y in sorted(zip(blocks_ele, blocks_matrix_ele), key=spin_sorting)]
@@ -217,7 +217,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
                 for index3,fock_object in enumerate(block):
                     blocks_num[index1][index2][index3] = blocks_num[index1][index2][index3].num
 
-    if prt.upper() == 'Y':
+    if prt is True:
         print()
         print()
         print('gs_energy:',gs_energy)
@@ -229,16 +229,7 @@ def hubbard(N=2,t=np.matrix([[0,-1],[-1,0]]),U=4,mu=2,spin_gs='+',manip='N',prt=
             print(matrix)
         print()
 
-    if manip.upper() == 'N':
+    if manip is False:
         return gs_energy,gs_numerical_states,gs_blocks_num,gs_blocks_matrix
-    if manip.upper() == 'Y':
+    if manip is True:
         return blocks_matrix,blocks_num,gs_blocks,blocks,gs_numerical_states
-'''
-t = np.matrix([
-    [0,1,1,0],
-    [1,0,0,1],
-    [1,0,0,1],
-    [0,1,1,0]
-])
-'''
-#print(hubbard(N=4,t=t,mu=6,prt='Y',spin_gs='+',qis_not='Y',manip='N'))

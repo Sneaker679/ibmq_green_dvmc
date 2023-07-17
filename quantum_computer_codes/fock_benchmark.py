@@ -12,8 +12,8 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t_fock,U,mu,generate_matrix,excit_document,spin_green,spin_gs,generate_npy,output_directory,pdf_output_directory
-from hamiltonian_circuit import t_fock
+from parameters import N,t,hopping_matrix,U,mu,generate_matrix,excit_document,spin_green,spin_gs,generate_npy,output_directory,pdf_output_directory
+from hamiltonian_circuit import hopping_matrix
 
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
@@ -36,14 +36,6 @@ from hubbard_classes import hubbard
 # Print options
 np.set_printoptions(linewidth = 1000,precision=4)
 
-'''
-result = h.hubbard(N,t_fock,U,mu,manip='yes')
-for ele1 in result[0]:
-    print()
-    for ele2 in ele1:
-        print(ele2)
-print(h.hubbard(N,t_fock,U,mu,prt='yes'))
-'''
 
 ### FUNCTIONS ################################################
 # In fock's, returns the excited state.
@@ -211,7 +203,7 @@ def parrallelized_element(shared_lists,spin,type,i,m,j,n):
     return ele
  
 
-def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
+def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
     
     # This is the total possible number of excitation for each site, as explained by the paper.
     lines = [values for values in lines_doc if values[1] == 0]
@@ -223,7 +215,7 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = hubbard(N,t_mat_,U,mu,spin_gs=spin_gs,manip='Y',qis_not='Y')
+    hubbard_output = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,manip=True,qis_not=True)
     gs_blocks = hubbard_output[2]
     gs_numerical_states = hubbard_output[4]
     
@@ -267,13 +259,13 @@ def matrix(type,lines_doc,N,spin,spin_gs,t_mat_,U,mu,generate_npy):
     if type[1] == '-':
         identifier = '_CA'
     
-    if generate_npy.upper() == 'Y':
+    if generate_npy is True:
         np.save(os.path.join(output_directory,type[0]+identifier+'_fock'),excitation_matrix)
     
     return excitation_matrix
 
 
-omega = hubbard(N,t_fock,U,mu,spin_gs=spin_gs,qis_not='Y')
+omega = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,qis_not=True)
 #print('GS_block:',omega[2])
 #print('GS_vector:',omega[1])
 #print()
@@ -281,14 +273,14 @@ lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:
         print(type+':')
-        print(matrix(type,lines_doc,N,spin_green,spin_gs,t_fock,U,mu,generate_npy))
+        print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
         print()
 else:
     print(type+':')
-    print(matrix(type,lines_doc,N,spin_green,spin_gs,t_fock,U,mu,generate_npy))
+    print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
     
 
 # Generating graph using graph.py
 verbose_read = 1
 from graph import dvmc_spectrum
-dvmc_spectrum(omega[0],verbose_read,'Y')
+dvmc_spectrum(omega[0],verbose_read,True)

@@ -3,11 +3,9 @@ import numpy as np
 
 class Fock():
 
-    def __init__(self,N,custom_input = None,qiskit_notation='N'):
+    def __init__(self,N,custom_input = None,qiskit_notation=False):
         if N < 1:
             raise Exception('Number of sites (N) must be at least 1.')
-        if not qiskit_notation == 'Y' and not qiskit_notation == 'N':
-            raise Exception('qiskit_notation must be "Y" or "N".')
         self.N = N
         self.sign = 1
         self.total_spin = 0
@@ -27,12 +25,12 @@ class Fock():
             self.num_electrons = np.count_nonzero(self.fock == 1)
             for index,value in np.ndenumerate(self.fock):
                 if value != 0:
-                    if self.qiskit_notation == 'N':
+                    if self.qiskit_notation is False:
                         if index[1] < self.fock.shape[1]/2:
                             self.total_spin += 1
                         else:
                             self.total_spin += -1
-                    if self.qiskit_notation == 'Y':
+                    if self.qiskit_notation is True:
                         if index[1] % 2 == 0:
                             self.total_spin += 1
                         else:
@@ -58,11 +56,11 @@ class Fock():
             spin_controller_down = -1   if type == 'create' else 1
 
             if spin == '-':
-                sp = 1          if self.qiskit_notation == 'Y'  else int(self.fock[0].size/2)
+                sp = 1          if self.qiskit_notation is True  else int(self.fock[0].size/2)
             if spin == '+':
-                sp = 0          if self.qiskit_notation == 'Y'  else 0
+                sp = 0          if self.qiskit_notation is True  else 0
            
-            index = 2*site+sp   if self.qiskit_notation == 'Y'  else site+sp
+            index = 2*site+sp   if self.qiskit_notation is True  else site+sp
 
             self.total_spin += spin_controller_down if spin == '-' else spin_controller_up
 

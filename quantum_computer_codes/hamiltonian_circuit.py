@@ -9,16 +9,7 @@ from qiskit_nature.second_q.operators import FermionicOp
 from qiskit import QuantumCircuit,QuantumRegister
 from qiskit.quantum_info import Statevector
 from qiskit_nature.second_q.hamiltonians import FermiHubbardModel
-from qiskit_nature.second_q.hamiltonians.lattices import (
-    BoundaryCondition,
-    HyperCubicLattice,
-    Lattice,
-    LatticeDrawStyle,
-    LineLattice,
-    SquareLattice,
-    TriangularLattice,
-)
-
+from qiskit_nature.second_q.hamiltonians.lattices import Lattice
 
 ### Fetching parameters.py and importing qcm ################
 module_directory = os.path.dirname(__file__)
@@ -29,7 +20,7 @@ from parameters import *
 sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'))
 from fock_class import Fock
 
-if use_qcm == 'Y':
+if use_qcm is True:
     import pyqcm
 
 #################### LATTICE SETUP ##########################
@@ -42,7 +33,7 @@ are not forcing the the code to use a custom lattice (configured in parameters.p
 then with the following lines, we generate the automatic lattice for all 3 
 implementations of the green function calculation (qcm,fock and ibmq)."""
 
-if not len(factors) == 2 and force_custom_lattice == 'N':
+if not len(factors) == 2 and force_custom_lattice is False:
     print('Using automatic lattice...')
     
     # Find number of rows and columns the automatic lattice would have.
@@ -53,24 +44,8 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
         num_columns = factors[int((len(factors)-1)/2)]
         num_rows = num_columns
 
-    ### Initializing qiskit lattice
-    boundary_condition = BoundaryCondition.OPEN
-    lattice = SquareLattice(rows=num_rows, cols=num_columns, boundary_condition = boundary_condition)
-    #lattice.draw()
-    #plt.show()
-
-    # Initializing the Hubbard qiskit Hamiltonian using the qiskit lattice.
-    Hamiltonian = FermiHubbardModel(
-        lattice.uniform_parameters(
-            uniform_interaction = t,
-            uniform_onsite_potential = -mu,
-        ),
-        onsite_interaction = U,
-    ).second_q_op()
-
-
     ### QCM lattice.
-    if use_qcm == 'Y':
+    if use_qcm is True:
         # Initializing cluster model
         CM = pyqcm.cluster_model(N)
 
@@ -89,8 +64,7 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
         model.hopping_operator('t', (0,1,0), -1)  # NN hopping
     
 
-    ### Automatic Fock hopping matrix
-    
+    ### Automatic hopping matrix
     # Generating lattice's site coordinates
     lattice_fock = []
     for row in range(num_rows):
@@ -98,7 +72,7 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
             lattice_fock.append(np.matrix([row,column]))
 
     # Generating hopping matrix using the coordinates defined before
-    t_fock = np.zeros((N,N))
+    hopping_matrix = np.zeros((N,N))
     for index1,site1 in enumerate(lattice_fock):
         for index2,site2 in enumerate(lattice_fock):
             
@@ -111,7 +85,10 @@ if not len(factors) == 2 and force_custom_lattice == 'N':
                 or np.array_equal(hop,np.matrix([0,1]))
                 or np.array_equal(hop,np.matrix([0,-1]))):
 
-                t_fock[index1,index2] = t
+                hopping_matrix[index1,index2] = 1
+    
+    ### Automatic Qiskit lattice
+    lattice = Lattice.from_adjacency_matrix(hopping_matrix)
 
 else:
     '''If the number of sites is a prime number, we use the custom lattice from qiskit in parameters.py to
@@ -122,23 +99,29 @@ else:
         print('Number of sites is a prime number. Using custom lattice...')
     else:
         print('Forcing custom lattice...')
-    
-    # The lattice here has been initialized in parameters.py
-    # We make the hamiltonian out of it.
-    Hamiltonian = FermiHubbardModel(
-        lattice.uniform_parameters(
-            uniform_interaction = t,
-            uniform_onsite_potential = -mu,
-        ),
-        onsite_interaction = U,
-    ).second_q_op()
-    
+
+    ### Automatic Qiskit lattice
+    if hopping_matrix_for_qiskit_lattice is True:
+        lattice = Lattice.from_adjacency_matrix(hopping_matrix)
+    else:
+        # Already defined in parameters.py
+        ...
+
+# Initializing the Hubbard qiskit Hamiltonian using the qiskit lattice.
+Hamiltonian = FermiHubbardModel(
+    lattice.uniform_parameters(
+        uniform_interaction = t,
+        uniform_onsite_potential = -mu,
+    ),
+    onsite_interaction = U,
+).second_q_op()
+
 
 #################### CIRCUIT SETUP ####################
 '''Qiskit needs a circuit so that it can calculate the desired element of the H and S matrices.
 This circuit is either created automatically here, or customized in parameters.py.'''
 
-if force_custom_circuit.upper() == 'N': 
+if force_custom_circuit is False: 
     """We calculate the exact ground state and use that vector to initialize the qubits."""
     print('Using exact diagonalisation for the ground state circuit...')
 
@@ -150,7 +133,7 @@ if force_custom_circuit.upper() == 'N':
         tol = 0.00001
         for vec_index,component in enumerate(vec):
             if np.abs(component) > tol:
-                vec_spin = Fock(N,vec_index,qiskit_notation='Y').total_spin
+                vec_spin = Fock(N,vec_index,qiskit_notation=True).total_spin
                 break
         return vec_spin
 
@@ -179,7 +162,7 @@ if force_custom_circuit.upper() == 'N':
     q = QuantumRegister(2*N)
     qc = QuantumCircuit(q)
     qc.initialize(gs_vec,q)
-    if decompose_and_print_circuit == 'Y':
+    if decompose_and_print_circuit is True:
         circuit = qc.decompose(reps=4*N)
         print(circuit)
     else:
