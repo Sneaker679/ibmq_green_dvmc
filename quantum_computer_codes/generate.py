@@ -207,7 +207,7 @@ def qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n):
 
     return qubit_observable
 
-def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
+def matrix_observables(type,lines_doc,N,spin,hamiltonian):
     """ Parameters
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
     spin: spin to be used on each side of the H and S matrices equation.
@@ -221,12 +221,6 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
     lines = [values for values in lines_doc if values[1] == 0]
     N_exc = len(lines)
 
-    # Timer start
-    start = time.time() 
-
-    # Initializing matrix
-    matrix_size = N * N_exc
-    excitation_matrix = np.zeros((matrix_size,matrix_size))
 
     print('Observables calculation...')
     # This loop creates a list of the parameters to be used for each element in the matrix
@@ -254,6 +248,10 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
         (in this case the hamiltonian). As a nice bonus, we have a progress bar.'''
         observables = pool.map(qubit_Observable,param,progress_bar=True)
 
+    return observables
+
+def job(observables,circuit,noisy_simulation=False,run_on_quantum_computer=False):
+
     # Starting quantum simulation
     if noisy_simulation is True:
         estimator = Noisy_Estimator(backend_options=estimator_options)
@@ -261,16 +259,34 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
         estimator = QC_Estimator(backend = backend)
     else:
         estimator = Estimator()
-    job = estimator.run([q_circuit]*int((1/2)*N*N_exc*(N*N_exc+1)),observables)
+
+    job = estimator.run([circuit]*len(observables),observables)
+
     if run_on_quantum_computer is True:
         print(f">>> Job ID: {job.job_id()}")
         print(f">>> Job Status: {job.status()}")
     else:
         print('Quantum Computer simulation...')
+
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
+    return values
+
+
+def matrix(type,N,values,save=True):
+
+    number_of_values = 0
+    lenght_new_row = 0    
+    while not number_of_values == len(values):
+        lenght_new_row += 1
+        number_of_values += lenght_new_row
+    N_exc = int(lenght_new_row/N)
     
+    # Initializing matrix
+    matrix_size = N * N_exc
+    excitation_matrix = np.zeros((matrix_size,matrix_size))
+
     # Filling matrix
     """This strange loop is because the list generated above makes it difficult to assign the values at the right index in the matrix.
     Basically, we have to figure out these indexes:
@@ -299,19 +315,41 @@ def matrix(type,lines_doc,N,spin,hamiltonian,q_circuit,save=True):
 
         np.save(os.path.join(output_directory,type[0]+identifier),excitation_matrix)
 
-    end = time.time()
-    print('Time:',end - start,'seconds.')
-    
     return excitation_matrix
 
-
 if __name__ == '__main__':
-    lines_doc = excitdef_reader(excit_document,excitation_directory)
+    lines_doc = excitdef_reader(excit_document,excitation_directory) 
+    N_exc = len([values for values in lines_doc if values[1] == 0])
+
+    start = time.time() 
+
     if generate_matrix.upper() == 'ALL':
+        observables_all = []
+        for type in ['H+','H-','S+','S-']:
+            observables = matrix_observables(type,lines_doc,N,spin_green,Hamiltonian)
+            observables_all.extend(observables)
+        
+        x = len(observables)
+        values = job(
+            observables=observables_all,
+            circuit = circuit,
+            noisy_simulation=noisy_simulation,
+            run_on_quantum_computer=run_on_quantum_computer
+            )
+
+        controller = 0
         for type in ['H+','H-','S+','S-']:
             print('##### '+type+' #####')
-            print(matrix(type,lines_doc,N,spin_green,Hamiltonian,circuit,generate_npy))
+            matrix_values = values[x*controller:x*(controller+1)]
+            controller += 1
+            print(matrix(type,N,matrix_values))
             print()
+        
+        end = time.time()
+        print('Time:',end-start,'seconds.')
+
     else:
         print('##### '+generate_matrix+' #####')
-        print(matrix(generate_matrix,lines_doc,N,spin_green,Hamiltonian,circuit,generate_npy))
+        observables = matrix_observables(generate_matrix,lines_doc,N,spin_green,Hamiltonian)
+        end = time.time()
+        print('Time:',end-start,'seconds.')

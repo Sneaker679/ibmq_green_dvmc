@@ -141,7 +141,7 @@ if force_custom_circuit is False:
     gs_energy = eigen_energies[0]
     tol = 1e-5
     for energy in eigen_energies:
-        if isclose(energy, gs_energy, rel_tol=tol):
+        if isclose(energy, gs_energy, abs_tol=tol):
             gs_eigen_energies.append(energy)
         else:
             break
@@ -155,8 +155,8 @@ if force_custom_circuit is False:
             raise Exception("spin_gs must be either '+', '-' or '0'.")
         
         vec_spin = find_vector_spin(vec)
-        if ((spin_gs == '+' and (vec_spin > 0 or vec_spin == 0))
-        or (spin_gs == '-' and (vec_spin < 0 or vec_spin == 0))):
+        if ((spin_gs == '+' and vec_spin >= 0)
+        or (spin_gs == '-' and vec_spin <= 0)):
             gs_vec = vec 
 
     q = QuantumRegister(2*N)

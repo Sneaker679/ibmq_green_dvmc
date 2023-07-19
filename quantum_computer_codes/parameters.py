@@ -6,21 +6,21 @@
 run_on_quantum_computer = False
 channel = "ibm_quantum"
 token = "token"
-backend_device = "ibmq_quito"
+backend_device = "ibm_quito"
     #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 
 # Physic parameters
-N = 2
+N = 4
 t = -1
 U = 4
 mu = 2
 spin_green = '+'                                 # Either '+' or '-'.
-spin_gs = '+'                                    # Either '+' or '-'.
+spin_gs = '-'                                    # Either '+' or '-'.
 
 
 # Code parameters
-use_qcm = False
+use_qcm = True
 
 force_custom_lattice = False
 hopping_matrix_for_qiskit_lattice = True
@@ -65,7 +65,7 @@ from qiskit_nature.second_q.hamiltonians.lattices import (
     TriangularLattice,
 )
 import numpy as np
-if use_qcm == 'Y':
+if use_qcm is True:
     import pyqcm
 #########################################
 
@@ -98,7 +98,7 @@ for i in range(1, N + 1):
        if N % i == 0:
            factors.append(i)
 
-if (use_qcm == 'Y' and force_custom_lattice == 'Y') or (use_qcm == 'Y' and len(factors) == 2):
+if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and len(factors) == 2):
     #####################################
     ### INPUT CUSTOM QCM LATTICE HERE ###
     #####################################
@@ -123,7 +123,7 @@ if (use_qcm == 'Y' and force_custom_lattice == 'Y') or (use_qcm == 'Y' and len(f
 
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
-'''
+
 #Circuit for 2 sites, mu=2
 
 theta = 2*1.178097245
@@ -137,7 +137,7 @@ circuit.cx(1,3)
 circuit.cx(1,2)
 circuit.cz(1,2)
 circuit.swap(1,2)
-'''
+
 '''
 #Circuit for 2 sites, mu=-0.7
 

@@ -9,16 +9,24 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
+try:
+    import pyqcm
+except:
+    print()
+    print('Pyqcm not installed! Skipping the qcm benchamrk.')
+    print()
+    sys.exit()
+
 from parameters import use_qcm,N,t,U,mu,spin_green,spin_gs,output_directory,pdf_output_directory
 
 if use_qcm is False:
     print()
-    print('Skipping the qcm benchmark since use_qcm == "N" in parameters.py.')
+    print('Skipping the qcm benchmark since use_qcm is False in parameters.py.')
     print()
     sys.exit()
 
-import pyqcm
 from hamiltonian_circuit import model
+
 
 # Making a list of sectors where the GS probably is.
 sec = ''
@@ -56,14 +64,14 @@ mu = {mu}
 I = pyqcm.model_instance(model)
 gs = I.ground_state(pr=False)
 
-previous_S_value = 64
 if len(gs[0][1].split('/')) > 1:
     new_sectors = gs[0][1].split('/')
+    previous_S_value = int(new_sectors[0].split(':')[2][1:])
     for index,sector in enumerate(new_sectors):
         sector_list = sector.split(':')
         S_value = int(sector_list[2][1:])
-        if ((spin_gs == '+' and S_value < previous_S_value and S_value >= 0)
-        or (spin_gs == '-' and S_value > previous_S_value and S_value <= 0)):
+        if ((spin_gs == '+' and S_value <= previous_S_value and S_value >= 0)
+        or (spin_gs == '-' and S_value >= previous_S_value and S_value <= 0)):
             desired_block_index = index
             previous_S_value = S_value
 

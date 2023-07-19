@@ -20,7 +20,7 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 # Code parameters
-use_qcm = False
+use_qcm = True
 
 force_custom_lattice = False
 hopping_matrix_for_qiskit_lattice = True

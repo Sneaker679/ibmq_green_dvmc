@@ -124,13 +124,15 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
 
 def choose_gs(gs_blocks,gs_numerical_states):
     final_spin = gs_blocks[0][0].total_spin
+    final_index = 0
     for index,block in enumerate(gs_blocks):
         new_spin = block[0].total_spin
         if ((spin_gs == '+' and 0 <= new_spin and new_spin < final_spin)
         or (spin_gs == '-' and 0 >= new_spin and new_spin > final_spin)):
             final_spin = new_spin
-    gs_block = gs_blocks[index]
-    gs_numerical_state = gs_numerical_states[index]
+            final_index = index
+    gs_block = gs_blocks[final_index]
+    gs_numerical_state = gs_numerical_states[final_index]
     return gs_block,gs_numerical_state
 
 def element(type,N,ex_state_left,ex_state_right,hubbard_output):
@@ -139,12 +141,9 @@ def element(type,N,ex_state_left,ex_state_right,hubbard_output):
     blocks_matrix = hubbard_output[0]
     blocks_num = hubbard_output[1]
     blocks = hubbard_output[3]
-    gs_blocks = hubbard_output[2]
-    gs_numerical_states = hubbard_output[4]
+    gs_block = hubbard_output[2]
+    gs_numerical_state = hubbard_output[4]
     
-    # Choose gs_block and gs_numerical_state
-    gs_block,gs_numerical_state = choose_gs(gs_blocks,gs_numerical_states)
-
     # Initializing a list that will contain the results of the distribution of the multiplication of the excited states with the hamiltonian
     scalar = []
     
@@ -215,13 +214,13 @@ def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
     excitation_matrix = np.zeros((matrix_size,matrix_size))
     
     # Hubbard output
-    hubbard_output = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,manip=True,qis_not=True)
+    hubbard_output = list(hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,manip=True,qis_not=True))
     gs_blocks = hubbard_output[2]
     gs_numerical_states = hubbard_output[4]
-    
-    # Choose gs_block and gs_numerical_state
-    gs_block,gs_numerical_state = choose_gs(gs_blocks,gs_numerical_states)
-    
+    hubbard_output[2],hubbard_output[4] = choose_gs(gs_blocks,gs_numerical_states)
+    gs_block = hubbard_output[2]
+    gs_numerical_state = hubbard_output[4]
+
     # Filling half of the matrix
     shared_lists = (hubbard_output,gs_block,gs_numerical_state,lines_doc)
     with WorkerPool(n_jobs=None,shared_objects=(shared_lists)) as pool:
@@ -266,9 +265,6 @@ def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
 
 
 omega = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,qis_not=True)
-#print('GS_block:',omega[2])
-#print('GS_vector:',omega[1])
-#print()
 lines_doc = excitdef_reader(excit_document,excitation_directory)
 if generate_matrix.upper() == 'ALL':
     for type in ['H+','H-','S+','S-']:

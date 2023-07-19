@@ -179,7 +179,7 @@ def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+
         # We only consider the blocks that fit the ground state we are after. Positive total spin or Negative total spin.
         if (spin_gs == '+' and block_spin >= 0) or (spin_gs == '-' and block_spin <= 0):
             if gs_energy >= gs_energy_block:
-                if gs_energy > gs_energy_block:
+                if gs_energy > gs_energy_block and not isclose(gs_energy,gs_energy_block,abs_tol=1e-5):
                     gs_blocks_matrix = []
                     gs_blocks_num = []
                     gs_numerical_states = []
