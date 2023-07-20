@@ -20,7 +20,7 @@
 - use_qcm (Y/N) : Calls or doesn't call the QCM module in the code. This is because the QCM installation may be difficult for some, thus this benchmark is optionnal.
 
 - force_custom_lattice (Y/N): This will tell the code to use the custom lattice models inputted in `parameters.py` instead of the automatically generated lattice.
-- hopping_matrix_for_qiskit_lattice (Y/N) : If force_custom_lattice == 'Y', the current implementation can initialize a qiskit lattice in 2 ways. The first one is by using a hopping matrix, defined in `parameters.py`. The second option is to initialize the lattice using qiskit's Lattice model classes and work from there. Highly custom lattices can be created from it, which could be very useful for the user. However, by using this second method, it is possible that the spectrums of the benchmarks don't overlap with the spectrum of qiskit, because the labels of the sites are different depending on the source code of the packages. This is why, as the user, you get to choose between using a hopping matrix to initialize the lattice, or using the lattice classes of qiskit. 
+- hopping_matrix_for_qiskit_lattice (Y/N) (NO LONGER A PARAMETER SINCE A SIMPLER SOLUTION WAS FOUND): If force_custom_lattice == 'Y', the current implementation can initialize a qiskit lattice in 2 ways. The first one is by using a hopping matrix, defined in `parameters.py`. The second option is to initialize the lattice using qiskit's Lattice model classes and work from there. Highly custom lattices can be created from it, which could be very useful for the user. However, by using this second method, it is possible that the spectrums of the benchmarks don't overlap with the spectrum of qiskit, because the labels of the sites are different depending on the source code of the packages. This is why, as the user, you get to choose between using a hopping matrix to initialize the lattice, or using the lattice classes of qiskit. 
 
 - force_custom_circuit (Y/N): By default, the code will initialize the qubits of the circuit with an exact ground state vector. If you wish to test your own custom circuit, input 'Y'.
 - decompose_and_print_circuit (Y/N): The circuit used in the code can be decomposed by qiskits into more elementary gates. By decomposing the circuit, said circuit will be printed in the CMD for you to see, and this decomposed circuit will also be used in the code. You will quickly notice that it is not very practical to have this on, because calculation times are way longer and the circuit itself becomes enourmous.
@@ -32,3 +32,8 @@
 
 ## Noisy simulation parameters
 - noisy_simulation (Y/N): Noise can be added to the simulation. Input 'Y' to have noise. Note that qiskit does not parallelize this simulation, thus the calculation can take days to complete. Not very practical. 
+
+
+# Custom Circuits
+With this code, you can use your custom circuits to calculate the Green function. However, be aware that qiskit has a very specific notation to use. Indeed, each qubits correspond to these positions in fock's basis: |... 5 4 3 2 1 0 >. In other words, the first qubit starts to the right. This is important because in order to create, for example, state #8, you need to apply circuit.x(3) and NOT circuit.x(0). 
+

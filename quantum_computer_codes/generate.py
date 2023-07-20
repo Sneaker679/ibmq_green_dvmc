@@ -26,9 +26,10 @@ from parameters import (
     excit_document,output_directory,
     estimator_options,
     noisy_simulation,run_on_quantum_computer,
-    token,channel,backend_device
+    token,channel,backend_device,
+    force_custom_circuit
 )
-from hamiltonian_circuit import Hamiltonian, circuit
+from hamiltonian_circuit import Hamiltonian, circuit, continue_with_diag
 
 excitation_directory = os.path.join(module_directory,'excitation_files')
 sys.path.insert(0,excitation_directory)
@@ -44,6 +45,12 @@ else:
 
 ### Print options ##########################################
 np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
+
+
+### Print Circuit ##########################################
+if N == 2 and force_custom_circuit is False and continue_with_diag is False:
+    print('Using hardcoded circuit.')
+    print(circuit)
 
 
 ### IBM Service ############################################
@@ -77,7 +84,7 @@ def create(N,site,spin):
     """
     operator = FermionicOp(
         {
-            '+_' + str(2*site+spin): -t,
+            '+_' + str((2*(N-1-site))+spin): -t,
         },
         num_spin_orbitals=2*N,
         copy=False

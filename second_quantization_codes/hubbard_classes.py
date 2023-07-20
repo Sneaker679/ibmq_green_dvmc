@@ -233,3 +233,17 @@ def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+
         return gs_energy,gs_numerical_states,gs_blocks_num,gs_blocks_matrix
     if manip is True:
         return blocks_matrix,blocks_num,gs_blocks,blocks,gs_numerical_states
+'''
+mu = 3.8
+rep1=1
+rep2=2
+#while not rep1 == rep2:
+while True:
+#while False:
+    rep1 = hubbard(mu=mu,spin_gs='+')[2]
+    rep2 = hubbard(mu=3,spin_gs='+')[2]
+    mu+=0.1
+    print(mu)
+    print(rep1,rep2)
+    print()
+'''

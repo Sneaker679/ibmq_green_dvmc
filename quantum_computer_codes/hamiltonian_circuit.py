@@ -88,7 +88,10 @@ if not len(factors) == 2 and force_custom_lattice is False:
                 hopping_matrix[index1,index2] = 1
     
     ### Automatic Qiskit lattice
-    lattice = Lattice.from_adjacency_matrix(hopping_matrix)
+    #lattice = Lattice.from_adjacency_matrix(hopping_matrix)
+    boundary_condition = BoundaryCondition.OPEN
+    lattice = SquareLattice(rows=num_columns, cols=num_rows, boundary_condition = boundary_condition)
+
 
 else:
     '''If the number of sites is a prime number, we use the custom lattice from qiskit in parameters.py to
@@ -100,12 +103,6 @@ else:
     else:
         print('Forcing custom lattice...')
 
-    ### Automatic Qiskit lattice
-    if hopping_matrix_for_qiskit_lattice is True:
-        lattice = Lattice.from_adjacency_matrix(hopping_matrix)
-    else:
-        # Already defined in parameters.py
-        ...
 
 # Initializing the Hubbard qiskit Hamiltonian using the qiskit lattice.
 Hamiltonian = FermiHubbardModel(
@@ -122,55 +119,111 @@ Hamiltonian = FermiHubbardModel(
 This circuit is either created automatically here, or customized in parameters.py.'''
 
 if force_custom_circuit is False: 
-    """We calculate the exact ground state and use that vector to initialize the qubits."""
-    print('Using exact diagonalisation for the ground state circuit...')
+    continue_with_diag = False
+    if N == 2:
+        q = QuantumRegister(2*N)
+        circuit = QuantumCircuit(q)
+        if mu >= 5:
+            circuit.x(0)
+            circuit.x(1)
+            circuit.x(2)
+            circuit.x(3)
+        elif mu < 5 and mu >= 3.8286 and spin_gs == '+':
+            circuit.x(0)
+            circuit.h(0)
+            circuit.cx(0,2)
+            circuit.x(2)
+            circuit.x(1)
+            circuit.x(3)
+        elif mu < 5 and mu >= 3.8286 and spin_gs == '-':
+            circuit.x(3)
+            circuit.h(3)
+            circuit.cx(3,1)
+            circuit.x(1)
+            circuit.x(0)
+            circuit.x(2)
+        elif mu < 3.8286 and mu > 0.1714:
+            eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
+            gs_vec = eigen[1][:,0].tolist()
+            angle = np.arccos(-gs_vec[3]*2**(1/2))
+            theta = 2*angle
 
-    eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
-    eigen_states = eigen[1] 
-    eigen_energies = eigen[0]
-
-    def find_vector_spin(vec):
-        tol = 0.00001
-        for vec_index,component in enumerate(vec):
-            if np.abs(component) > tol:
-                vec_spin = Fock(N,vec_index,qiskit_notation=True).total_spin
-                break
-        return vec_spin
-
-    gs_eigen_energies = []
-    gs_energy = eigen_energies[0]
-    tol = 1e-5
-    for energy in eigen_energies:
-        if isclose(energy, gs_energy, abs_tol=tol):
-            gs_eigen_energies.append(energy)
+            circuit.ry(theta, 2)
+            circuit.h(0)
+            circuit.cx(2,3)
+            circuit.cx(0,1)
+            circuit.x(2)
+            circuit.x(0)
+            circuit.cx(1,3)
+            circuit.cx(1,2)
+            circuit.cz(1,2)
+            circuit.swap(1,2)
+        elif mu <= 0.1714 and mu > -1 and spin_gs == '+':
+            circuit.h(3)
+            circuit.cx(3,1)
+            circuit.x(3)
+        elif mu <= 0.1714 and mu > -1 and spin_gs == '-':
+            circuit.h(0)
+            circuit.cx(0,2)
+            circuit.x(0)
+        elif mu <= -1:
+            ...# State is |0000>
         else:
-            break
+            print('No hardcoded circuits available for that configuration.\nProceeding with exact diagonalisation.')
+            continue_with_diag = True
+    
+    #continue_with_diag=True
+    if not N == 2 or continue_with_diag is True:
+        """We calculate the exact ground state and use that vector to initialize the qubits."""
+        print('Using exact diagonalisation for the ground state circuit...')
 
-    eigen_states_list = []
-    for index in range(len(gs_eigen_energies)):
-        eigen_states_list.append(eigen_states[:,index])
+        eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
+        eigen_states = eigen[1] 
+        eigen_energies = eigen[0]
 
-    for vec in eigen_states_list:
-        if spin_gs not in ['+','-','0']:
-            raise Exception("spin_gs must be either '+', '-' or '0'.")
-        
-        vec_spin = find_vector_spin(vec)
-        if ((spin_gs == '+' and vec_spin >= 0)
-        or (spin_gs == '-' and vec_spin <= 0)):
-            gs_vec = vec 
+        def find_vector_spin(vec):
+            tol = 0.00001
+            for vec_index,component in enumerate(vec):
+                if np.abs(component) > tol:
+                    vec_spin = Fock(N,vec_index,qiskit_notation=True).total_spin
+                    break
+            return vec_spin
 
-    q = QuantumRegister(2*N)
-    qc = QuantumCircuit(q)
-    qc.initialize(gs_vec,q)
-    if decompose_and_print_circuit is True:
-        circuit = qc.decompose(reps=4*N)
-        print(circuit)
-    else:
-        circuit = qc
-        del qc
-    circuit.draw()
+        gs_eigen_energies = []
+        gs_energy = eigen_energies[0]
+        tol = 1e-5
+        for energy in eigen_energies:
+            if isclose(energy, gs_energy, abs_tol=tol):
+                gs_eigen_energies.append(energy)
+            else:
+                break
 
-else:
+        eigen_states_list = []
+        for index in range(len(gs_eigen_energies)):
+            eigen_states_list.append(eigen_states[:,index])
+
+        for vec in eigen_states_list:
+            if spin_gs not in ['+','-','0']:
+                raise Exception("spin_gs must be either '+', '-' or '0'.")
+            
+            vec_spin = find_vector_spin(vec)
+            if ((spin_gs == '+' and vec_spin >= 0)
+            or (spin_gs == '-' and vec_spin <= 0)):
+                gs_vec = vec 
+
+        q = QuantumRegister(2*N)
+        qc = QuantumCircuit(q)
+        qc.initialize(gs_vec,q)
+        if decompose_and_print_circuit is True:
+            circuit = qc.decompose(reps=4*N)
+            print(circuit)
+        else:
+            circuit = qc
+            del qc
+        circuit.draw()
+
+
+if force_custom_circuit is True:
     """We don't define any circuits here because is was already done in parameters.py. The previous if
     overrides the custom circuit for the automatic one."""
     print('Using custom ground state circuit...')

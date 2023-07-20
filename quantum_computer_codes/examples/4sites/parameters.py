@@ -23,8 +23,6 @@ spin_gs = '+'                                    # Either '+' or '-'.
 use_qcm = True
 
 force_custom_lattice = False
-hopping_matrix_for_qiskit_lattice = True
-
 force_custom_circuit = False
 decompose_and_print_circuit = False
 
@@ -81,7 +79,7 @@ lattice = LineLattice(num_nodes = N, boundary_condition = boundary_condition)
 
 #########################################
 ####  INPUT CUSTOM t HOPPING MATRIX  ####
-#### affects qiskit and fock's basis ####
+####    affects fock's basis only    ####
 #########################################
 
 # A possible hopping is 1
@@ -124,27 +122,8 @@ if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and le
 # Don't modify this following line #
 circuit = QuantumCircuit(2*N)
 
-#Circuit for 2 sites, mu=2
-
-theta = 2*1.178097245
-circuit.ry(theta, 2)
-circuit.h(0)
-circuit.cx(2,3)
-circuit.cx(0,1)
-circuit.x(2)
 circuit.x(0)
-circuit.cx(1,3)
-circuit.cx(1,2)
-circuit.cz(1,2)
-circuit.swap(1,2)
 
-'''
-#Circuit for 2 sites, mu=-0.7
-
-circuit.h(3)
-circuit.cx(3,1)
-circuit.x(3)
-'''
 ####################################
 
 
