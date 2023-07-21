@@ -46,6 +46,8 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
     spin: spin to be used for the calculation.
     gs_block_hub: the list of fock's basis states for the GS, obtained with the hubbard() function when manip='yes'.
     gs_numerical_state: actual ground state of the system, obtained with the hubbard() function.
+
+    Returns: List of Fock objects representing the excited state.
     """
 
     # Assigns the components of the numerical ground state to its respective state in the block
@@ -122,7 +124,14 @@ def ex_state(type,i,m,spin,gs_block_hub,gs_numerical_state,lines_doc):
     
     return excited_block
 
-def choose_gs(gs_blocks,gs_numerical_states):
+def choose_gs(gs_blocks,gs_numerical_states,spin_gs):
+    """Parameters
+    gs_blocks: List of multiple gs blocks containing each multiple states. Obtained with hubbard().
+    gs_numerical_states: GS vector. Obtained with hubbard().
+    spin_gs: Spin priority of the ground state.
+
+    Returns: gs_block and gs_numerical_state, who have been chosen based on their total spin value. 
+    """
     final_spin = gs_blocks[0][0].total_spin
     final_index = 0
     for index,block in enumerate(gs_blocks):
@@ -136,6 +145,14 @@ def choose_gs(gs_blocks,gs_numerical_states):
     return gs_block,gs_numerical_state
 
 def element(type,N,ex_state_left,ex_state_right,hubbard_output):
+    """Parameters
+    type: H+, H-, S+ or S-
+    N: Number of sites
+    ex_state_left/right: List of Fock objects that corresponds to the states that survived the n operators and the c operator.
+    hubbard_ouput: The outputs of the hubbard(manip=True) function.
+
+    Returns: Single element of the matrix we wish to calculate.
+    """
 
     # Defining the outputs of the hubbard() function
     blocks_matrix = hubbard_output[0]
@@ -194,6 +211,15 @@ def element(type,N,ex_state_left,ex_state_right,hubbard_output):
 
 
 def parrallelized_element(shared_lists,spin,type,i,m,j,n):
+    """Parameters
+    shared_lists: Obtained with mpire. Corresponds to the parameters we are sharing for all processes.
+    spin: Spin for which we are calculating the Green function.
+    type: H+, H-, S+ or S-
+    i/j: Number of the site
+    m/n: Label of the excitation
+
+    Returns: Single element of the matrix we wish to calculate.
+    """
     import numpy as np
 
     ex_state_left = ex_state(type,i,m,spin,shared_lists[1],shared_lists[2],shared_lists[3])
@@ -202,7 +228,21 @@ def parrallelized_element(shared_lists,spin,type,i,m,j,n):
     return ele
  
 
-def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
+def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,save):
+    """Parameters
+    type: H+, H-, S+ or S-
+    lines_doc: List form of the excitation.def file. Obtained with excitdef_reader().
+    N: Number of sites
+    spin: Spin for which we are calculating the Green function.
+    spin_gs: Priority total spin of the ground state.
+    t: Hopping energy.
+    hopping_matrix: Hopping matrix that states the allowed jumps. 1 is a possible jump, 0 is not a possible jump. Diagonal should be 0.
+    U: Potential energy.
+    mu: Chemical potential energy.
+    generate_npy: Boolean that dictates if the matrices should be saved or not as .npy files.
+
+    Returns: Matrix of the chosen type.
+    """
     
     # This is the total possible number of excitation for each site, as explained by the paper.
     lines = [values for values in lines_doc if values[1] == 0]
@@ -217,7 +257,7 @@ def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
     hubbard_output = list(hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,manip=True,qis_not=True))
     gs_blocks = hubbard_output[2]
     gs_numerical_states = hubbard_output[4]
-    hubbard_output[2],hubbard_output[4] = choose_gs(gs_blocks,gs_numerical_states)
+    hubbard_output[2],hubbard_output[4] = choose_gs(gs_blocks,gs_numerical_states,spin_gs)
     gs_block = hubbard_output[2]
     gs_numerical_state = hubbard_output[4]
 
@@ -258,25 +298,24 @@ def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,generate_npy):
     if type[1] == '-':
         identifier = '_CA'
     
-    if generate_npy is True:
+    if save is True:
         np.save(os.path.join(output_directory,type[0]+identifier+'_fock'),excitation_matrix)
     
     return excitation_matrix
 
-
-omega = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,qis_not=True)
-lines_doc = excitdef_reader(excit_document,excitation_directory)
-if generate_matrix.upper() == 'ALL':
-    for type in ['H+','H-','S+','S-']:
+if __name__ == "__main__":
+    omega = hubbard(N,t,hopping_matrix,U,mu,spin_gs=spin_gs,qis_not=True)
+    lines_doc = excitdef_reader(excit_document,excitation_directory)
+    if generate_matrix.upper() == 'ALL':
+        for type in ['H+','H-','S+','S-']:
+            print(type+':')
+            print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
+            print()
+    else:
         print(type+':')
         print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
-        print()
-else:
-    print(type+':')
-    print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
-    
+        
 
-# Generating graph using graph.py
-verbose_read = 1
-from graph import dvmc_spectrum
-dvmc_spectrum(omega[0],verbose_read,True)
+    # Generating graph using graph.py
+    from graph import dvmc_spectrum
+    dvmc_spectrum(omega[0],verbose=1,fock_benchmarking=True)

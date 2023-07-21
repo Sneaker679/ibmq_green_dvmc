@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
 from mpire import WorkerPool
-from qiskit_ibm_runtime import QiskitRuntimeService
-from qiskit_ibm_runtime import Estimator as QC_Estimator
+from qiskit_ibm_runtime import QiskitRuntimeService,Estimator as QC_Estimator
+from qiskit_ibm_runtime.options import Options
 from qiskit_aer.primitives import Estimator as Noisy_Estimator
 from qiskit.primitives import Estimator
 from qiskit_nature.second_q.mappers import JordanWignerMapper
@@ -42,6 +42,8 @@ if os.path.exists(os.path.join(working_directory,excit_document)):
 else:
     print('Using the excitation.def files included with the code.\n')
 
+from mapping import find_best_layout
+
 
 ### Print options ##########################################
 np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
@@ -57,17 +59,21 @@ if N == 2 and force_custom_circuit is False and continue_with_diag is False:
 if run_on_quantum_computer is True:
     service = QiskitRuntimeService(channel=channel, token=token)
     backend = service.get_backend(backend_device)
+else:
+    backend = None
 
 
 ### FUNCTIONS ###############################################
 ## Creation, destruction and check(n and n_dag) operators using qiskit
 
-"""
-N is the number of sites in total.
-site is the site for which we want to create the operator. The first site is #0.
-spin is the spin to be used for the creation of the operator.
-"""
 def create(N,site,spin): 
+    """Parameters
+    N: Number of sites in total.
+    site: Number of the site for which we want to create the operator. The first site is #0.
+    spin: Spin to be used for the creation of the operator.
+
+    Returns: Creation operator as a FermionicOp.
+    """
     if not spin == '-' and not spin == '+':
         raise Exception('Input must be "+" or "-".')
     if spin == '+':
@@ -91,35 +97,50 @@ def create(N,site,spin):
     )
     return operator
 
-"""Since the annihilation, or as I call it here, the 'destroy' operator, is the
-equivalent of create**dagger, we only need to do the transpose() and conjugate()
-of 'creation' to obtain 'destroy'."""
+
 def destroy(N,site,spin):
+    """Parameters
+    N: Number of sites in total.
+    site: Number of the site for which we want to create the operator. The first site is #0.
+    spin: Spin to be used for the creation of the operator.
+    
+    Returns: Annihilation operator / destroy operator as a FermionicOp.
+    """
     return create(N,site,spin).transpose().conjugate()
+
 
 """The check operator is simply the name of the operator 'n', which checks if an
 electron is there or not. As per qiskit's FermionicOp class, multiplication of 
 operators must be written using @. The check operator has 2 variants for if we are
 checking for the presence or absence or a fermion, which translates to n and n**dag."""
 def check(type,N,site,spin):
-    if not type == 'presence' and not type == 'absence':
+    """Parameters
+    type: 'presence' or 'absence'
+    N: Number of sites in total.
+    site: Number of the site for which we want to create the operator. The first site is #0.
+    spin: Spin to be used for the creation of the operator.
+
+    Returns: Check operator as a FermionicOp
+    """
+
+    if not type.lower() == 'presence' and not type.lower() == 'absence':
         raise Exception('Type must be either "presence" or "absence".')
-    if type == 'presence':
+    if type.lower() == 'presence':
         return create(N,site,spin) @ destroy(N,site,spin)
-    if type == 'absence':
+    if type.lower() == 'absence':
         return destroy(N,site,spin) @ create(N,site,spin)
 
 
+
 ## Calculation of excited states
-"""This function calculates the product of the operators associated with one exited state.
-It is important to note that this doesn't calculate the product of those operators with the GS.
-This task is for the quantum computer."""
 def ex_operators(type,i,m,spin,lines_doc):
     """Parameters
     type: which matrix we are calculating (H+,H-,S+ or S-).
     i,m: parameters of the calculated element of the matrix. i is the site numbers and m is the excitation label.
     spin: spin to be used on each side of the H and S matrices equation.
     lines_doc: list form of the excitation.def document. Obtained with the excitdef_reader() function.    
+
+    Returns: The product of the operators associated with an excited state.
     """
     
     """The following block merely ensure proper values are inserted in the function."""
@@ -178,9 +199,11 @@ def Observable(type,ex_op_left,ex_op_right,hamiltonian):
     type: which matrix we are calculating (H+,H-,S+ or S-).
     ex_op_left/right: excited operator calculated using the ex_operator() function.
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
+
+    Returns: The observable as a FermionicOp.
     """
 
-    '''Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket.'''
+    """Notice how ex_op_left has .transpose() and .conjugate at its end, because we want the bra, not the ket."""
     ex_op_left = ex_op_left.transpose().conjugate()
     
     """The result is the final observable to be used by the quantum computer."""
@@ -199,6 +222,8 @@ def qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n):
     lines_doc: list form of the excitation.def document. Obtained with the excitdef_reader() function.    
     type: which matrix we are calculating (H+,H-,S+ or S-).
     i,m,j,n: parameters of the calculated element of the matrix. i,j are site numbers are m,n are excitation labels.
+
+    Returns: The observable in the Jordan-Wigner basis.
     """
 
     """One downside of the mpire parallelization is that it 
@@ -214,6 +239,7 @@ def qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n):
 
     return qubit_observable
 
+
 def matrix_observables(type,lines_doc,N,spin,hamiltonian):
     """ Parameters
     hamiltonian: qiskit's FermionicOp object which is, in this case, our hamiltonian.
@@ -222,6 +248,8 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
     type: which matrix we are calculating (H+,H-,S+ or S-).
     q_circuit: qiskit's quantum circuit object. In this case, it is our ground state.
     save: wether we save or not the matrices as .npy files. (Y or N)
+
+    Returns: List of observables as FermionicOp objects for the specified matrix type.
     """
     
     # This is the total possible number of excitation for each site, as explained by the paper.
@@ -257,16 +285,30 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
 
     return observables
 
-def job(observables,circuit,noisy_simulation=False,run_on_quantum_computer=False):
 
-    # Starting quantum simulation
+def job(observables,circuit,backend,noisy_simulation=False,run_on_quantum_computer=False):
+    """Parameters
+    observables: Observables obtained with matrix_observables(). List of FermionicOps.
+    circuit: Single circuit to be repeated for each observables. Circuit object from qiskit.
+    backend: Backend for the calculation. Corresponds to the ibm device.
+    noisy_simulation: Boolean that dictates if the job should be a quantum simulation with added noise using Qiskit's Aer module.
+    run_on_quantum_computer: Boolean that dictates if the job should be ran on an actual quantum computer instead of Qiskit's simulators.
+
+    Returns: List of values corresponding to the results of the Estimator.
+    """
+
+    # Defining estimator
     if noisy_simulation is True:
         estimator = Noisy_Estimator(backend_options=estimator_options)
     elif run_on_quantum_computer is True:
-        estimator = QC_Estimator(backend = backend)
+        init_layout,*rest = find_best_layout(circuit=circuit,backend=backend,num_tries=10,seed=50)
+        options = Options()
+        options.transpilation.initial_layout=init_layout
+        estimator = QC_Estimator(backend = backend,options=options)
     else:
         estimator = Estimator()
 
+    # Running job
     job = estimator.run([circuit]*len(observables),observables)
 
     if run_on_quantum_computer is True:
@@ -275,14 +317,25 @@ def job(observables,circuit,noisy_simulation=False,run_on_quantum_computer=False
     else:
         print('Quantum Computer simulation...')
 
+    # Fetching results
     result = job.result()
     values = result.values # This outputs all the values of the matrix in the order they were calculated above.
           # This order is line by line, from left to right, ommiting the elements we are not calculating.
+
     return values
 
 
 def matrix(type,N,values,save=True):
+    """Parameters
+    type: H+, H-, S+ or S-
+    N: Number of sites
+    values: Values obtained from the job function defined above.
+    save: If the matrices are to be saved as .npy files.
 
+    Returns: Matrix of the specififed type.
+    """
+
+    # Find N_exc using the list of observables
     number_of_values = 0
     lenght_new_row = 0    
     while not number_of_values == len(values):
@@ -331,19 +384,24 @@ if __name__ == '__main__':
     start = time.time() 
 
     if generate_matrix.upper() == 'ALL':
+        # Grouping all observables under one job
         observables_all = []
         for type in ['H+','H-','S+','S-']:
             observables = matrix_observables(type,lines_doc,N,spin_green,Hamiltonian)
             observables_all.extend(observables)
         
+        # Submitting job
         x = len(observables)
         values = job(
             observables=observables_all,
-            circuit = circuit,
+            circuit=circuit,
+            backend=backend,
             noisy_simulation=noisy_simulation,
             run_on_quantum_computer=run_on_quantum_computer
             )
 
+        # Extracting the proper matrix values from the output of job() depending on the type of the matrix
+        # Calculating matrix
         controller = 0
         for type in ['H+','H-','S+','S-']:
             print('##### '+type+' #####')
@@ -357,6 +415,16 @@ if __name__ == '__main__':
 
     else:
         print('##### '+generate_matrix+' #####')
+
         observables = matrix_observables(generate_matrix,lines_doc,N,spin_green,Hamiltonian)
+        values = job(
+            observables=observables,
+            circuit=circuit,
+            backend=backend,
+            noisy_simulation=noisy_simulation,
+            run_on_quantum_computer=run_on_quantum_computer
+            )
+        print(matrix(type,N,values))
+
         end = time.time()
         print('Time:',end-start,'seconds.')

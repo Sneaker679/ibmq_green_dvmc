@@ -34,6 +34,12 @@
 - noisy_simulation (Y/N): Noise can be added to the simulation. Input 'Y' to have noise. Note that qiskit does not parallelize this simulation, thus the calculation can take days to complete. Not very practical. 
 
 
+# Graph parameters
+graph_for_ibmq: Boolean that dictates if `combined_graph.py` should graph the ibmq spectrum.
+graph_for_fock: Boolean that dictates if `combined_graph.py` should graph the fock benchmark spectrum.
+graph_for_qcm: Boolean that dictates if `combined_graph.py` should graph the qcm spectrum.
+
+
 # Custom Circuits
 With this code, you can use your custom circuits to calculate the Green function. However, be aware that qiskit has a very specific notation to use. Indeed, each qubits correspond to these positions in fock's basis: |... 5 4 3 2 1 0 >. In other words, the first qubit starts to the right. This is important because in order to create, for example, state #8, you need to apply circuit.x(3) and NOT circuit.x(0). 
 

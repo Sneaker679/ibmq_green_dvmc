@@ -119,6 +119,8 @@ Hamiltonian = FermiHubbardModel(
 This circuit is either created automatically here, or customized in parameters.py.'''
 
 if force_custom_circuit is False: 
+
+    # Choosing circuit if N == 2. These circuits are hardcoded.
     continue_with_diag = False
     if N == 2:
         q = QuantumRegister(2*N)
@@ -172,7 +174,7 @@ if force_custom_circuit is False:
             print('No hardcoded circuits available for that configuration.\nProceeding with exact diagonalisation.')
             continue_with_diag = True
     
-    #continue_with_diag=True
+
     if not N == 2 or continue_with_diag is True:
         """We calculate the exact ground state and use that vector to initialize the qubits."""
         print('Using exact diagonalisation for the ground state circuit...')
@@ -180,15 +182,23 @@ if force_custom_circuit is False:
         eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
         eigen_states = eigen[1] 
         eigen_energies = eigen[0]
-
+        
+        """In order to prioritize the ground state with the spin closest to 0, we need the following code."""
         def find_vector_spin(vec):
+            """
+            vec: Vector as a list.
+
+            Returns: Vector state's total spin as an integer
+            """
+
             tol = 0.00001
             for vec_index,component in enumerate(vec):
                 if np.abs(component) > tol:
                     vec_spin = Fock(N,vec_index,qiskit_notation=True).total_spin
                     break
             return vec_spin
-
+        
+        # Fetching the number of states that have the same ground state energy
         gs_eigen_energies = []
         gs_energy = eigen_energies[0]
         tol = 1e-5
@@ -198,10 +208,12 @@ if force_custom_circuit is False:
             else:
                 break
 
+        # Fetching the states that have the same ground state energy.
         eigen_states_list = []
         for index in range(len(gs_eigen_energies)):
             eigen_states_list.append(eigen_states[:,index])
 
+        # Looping trough the states to find the one witht the spin closest to 0.
         for vec in eigen_states_list:
             if spin_gs not in ['+','-','0']:
                 raise Exception("spin_gs must be either '+', '-' or '0'.")
@@ -211,6 +223,7 @@ if force_custom_circuit is False:
             or (spin_gs == '-' and vec_spin <= 0)):
                 gs_vec = vec 
 
+        # Initializing quantum circuit
         q = QuantumRegister(2*N)
         qc = QuantumCircuit(q)
         qc.initialize(gs_vec,q)

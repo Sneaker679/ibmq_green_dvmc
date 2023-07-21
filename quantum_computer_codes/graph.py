@@ -78,7 +78,7 @@ if (len(sys.argv)>=6):
 
 
 # Function that calculates the green function and outputs a pdf of it.
-def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = False):
+def dvmc_spectrum(Omega,verbose=1,fock_benchmarking=False):
 
   sum_rule_max = sum_rule_max_ok
   sum_rule_min = sum_rule_min_ok
@@ -131,8 +131,8 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking = False):
   tol_AC = np.abs(SV_AC.min())
   tol_CA = np.abs(SV_CA.min())
 
-
   nc_AC = len(SV_AC)
+  nc_CA = len(SV_CA)
   break_AC = False
   
   break_CA = False

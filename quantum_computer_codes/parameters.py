@@ -6,7 +6,7 @@
 run_on_quantum_computer = False
 channel = "ibm_quantum"
 token = "token"
-backend_device = "ibm_quito"
+backend_device = "ibmq_quito"
     #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 
@@ -20,7 +20,7 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 # Code parameters
-use_qcm = True
+use_qcm = False
 
 force_custom_lattice = False
 force_custom_circuit = False
@@ -48,6 +48,12 @@ estimator_options = {
 """More info about these options here:
 https://qiskit.org/ecosystem/aer/stubs/qiskit_aer.QasmSimulator.html
 """
+
+
+# Graph parameters
+graph_for_ibmq = True
+graph_for_fock = True
+graph_for_qcm = True
 
 
 ############### PACKAGES ################

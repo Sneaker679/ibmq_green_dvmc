@@ -19,6 +19,7 @@ To run this code, you will need to install the following packages for your Pytho
 - matplotlib--> (https://matplotlib.org/stable/users/getting_started/index.html#installation-quick-start)
 - numpy--> (https://numpy.org/install/)
 - mpire--> (https://sybrenjansen.github.io/mpire/v2.3.0/install.html)
+- mapomatic--> (https://github.com/Qiskit-Partners/mapomatic)
 - [OPTIONAL] pyqcm-->  (https://qcm-wed.readthedocs.io/en/latest/intro.html#installation)
 
 Note that the "qcm" package is not manditory as its only purpose is to benchmark the calculations using the quantum computer.
@@ -101,5 +102,4 @@ In the directory `quantum_computer_codes/examples`, there are some directories c
 
 ## TODO
 - Add a code to generate excitation.def files automatically.
-- Split load on a maximum number of cores.
 - Debugging.
