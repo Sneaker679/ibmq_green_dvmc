@@ -24,10 +24,10 @@ from parameters import (
     N,t,U,mu,spin_green,
     generate_matrix,generate_npy,
     excit_document,output_directory,
-    estimator_options,
+    aer_estimator_options,quantum_computer_options,
     noisy_simulation,run_on_quantum_computer,
     token,channel,backend_device,max_circuit_per_job,
-    recover_jobs,job_ids,
+    recover_jobs,job_ids,    
     force_custom_circuit,
 )
 from hamiltonian_circuit import Hamiltonian, circuit, continue_with_diag
@@ -290,7 +290,9 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
 def job(observables,circuit,backend,
         max_circuit=30,
         noisy_simulation=False,
+        aer_estimator_options=None,
         run_on_quantum_computer=False,
+        quantum_computer_options=None,
         recover_jobs = False,
         job_ids = {},
         service=None
@@ -302,7 +304,9 @@ def job(observables,circuit,backend,
     max_circuit: Maximum of circuit per job.
     backend: Backend for the calculation. Corresponds to the ibm device.
     noisy_simulation: Boolean that dictates if the job should be a quantum simulation with added noise using Qiskit's Aer module.
+    aer_estimator_options: Estimaror options for Aer implementation as dictionnary
     run_on_quantum_computer: Boolean that dictates if the job should be ran on an actual quantum computer instead of Qiskit's simulators.
+    quantum_computer_options : Options class of qiskit that is fed to the quantum computer estimator.
     recover_jobs: Boolean that states if the program should fetch jobs that are already completed.
     job_ids: Dictionnary containing the job ids of the jobs that are to be recovered.
     service: QiskitRuntimeService used running the jobs you wish the recover.
@@ -345,7 +349,7 @@ def job(observables,circuit,backend,
 
         print('Quantum Computer simulation...')
         if noisy_simulation is True:
-            estimator = Noisy_Estimator(backend_options=estimator_options)
+            estimator = Noisy_Estimator(**aer_estimator_options)
         else:
             estimator = Estimator()
 
@@ -431,7 +435,9 @@ if __name__ == '__main__':
             max_circuit=max_circuit_per_job,
             service=service,
             noisy_simulation=noisy_simulation,
+            aer_estimator_options=aer_estimator_options,
             run_on_quantum_computer=run_on_quantum_computer,
+            quantum_computer_options=quantum_computer_options,
             recover_jobs = recover_jobs,
             job_ids = job_ids
             )
@@ -459,7 +465,9 @@ if __name__ == '__main__':
             max_circuit=max_circuit_per_job,
             service=service,
             noisy_simulation=noisy_simulation,
+            aer_estimator_options=aer_estimator_options,
             run_on_quantum_computer=run_on_quantum_computer,
+            quantum_computer_options=quantum_computer_options,
             recover_jobs = recover_jobs,
             job_ids = job_ids
             )
