@@ -2,9 +2,12 @@
 
 ## IBM Credentials
 - run_on_quantum_computer (Y/N) : If you want to run the code on a quantum computer, change this to 'Y'. Make sure your IBM credentials are correctly configured below.
+- max_circuit_per_job : Integer that states how many circuits should a single job have. The code splits the workload on multiple jobs, hence why this parameter may be important.
 - channel : Channel to connect to. To connect to IBM quantum computers, input 'ibm_quantum'
 - token : Refer to your IBM account for your token.
 - backend_device : Name of the device to run the simulation on. The list of available backends is on the IBM website. The link is provided [here](https://quantum-computing.ibm.com/services/resources?tab=yours).
+- recover_jobs: Boolean that dictates if the code should try to recover jobs that were already ran on IBM quantum.
+- job_ids : Dictionnary that contains the jobs ids of the jobs to be recovered. Format : {'job0':'id1', 'job3':'id3',...}. Downside is that you have to know in what order the jobs were sent.
 
 
 ## Physic parameters
