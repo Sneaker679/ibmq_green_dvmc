@@ -11,12 +11,12 @@ token = "token here"
 backend_device = "ibmq_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
-recover_job = True
+recover_jobs = True
 job_ids = {# Add the ids of the job in the same order they were submitted intially.
     'job0': '',
     'job1': '',
     'job2': '',
-    ...
+    #add more
 } 
 
 
