@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
 from mpire import WorkerPool
-from qiskit_ibm_runtime import QiskitRuntimeService,Estimator as QC_Estimator
+from qiskit_ibm_runtime import Session,QiskitRuntimeService,Estimator as QC_Estimator
 from qiskit_ibm_runtime.options import Options
 from qiskit_aer.primitives import Estimator as Noisy_Estimator
 from qiskit.primitives import Estimator
@@ -26,8 +26,9 @@ from parameters import (
     excit_document,output_directory,
     estimator_options,
     noisy_simulation,run_on_quantum_computer,
-    token,channel,backend_device,
-    force_custom_circuit
+    token,channel,backend_device,max_circuit_per_job,
+    recover_jobs,job_ids,
+    force_custom_circuit,
 )
 from hamiltonian_circuit import Hamiltonian, circuit, continue_with_diag
 
@@ -60,8 +61,8 @@ if run_on_quantum_computer is True:
     service = QiskitRuntimeService(channel=channel, token=token)
     backend = service.get_backend(backend_device)
 else:
+    service = None
     backend = None
-
 
 ### FUNCTIONS ###############################################
 ## Creation, destruction and check(n and n_dag) operators using qiskit
@@ -286,41 +287,72 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
     return observables
 
 
-def job(observables,circuit,backend,noisy_simulation=False,run_on_quantum_computer=False):
+def job(observables,circuit,backend,
+        max_circuit=30,
+        noisy_simulation=False,
+        run_on_quantum_computer=False,
+        recover_jobs = False,
+        job_ids = {},
+        service=None
+    ):
+
     """Parameters
     observables: Observables obtained with matrix_observables(). List of FermionicOps.
     circuit: Single circuit to be repeated for each observables. Circuit object from qiskit.
+    max_circuit: Maximum of circuit per job.
     backend: Backend for the calculation. Corresponds to the ibm device.
     noisy_simulation: Boolean that dictates if the job should be a quantum simulation with added noise using Qiskit's Aer module.
     run_on_quantum_computer: Boolean that dictates if the job should be ran on an actual quantum computer instead of Qiskit's simulators.
+    recover_jobs: Boolean that states if the program should fetch jobs that are already completed.
+    job_ids: Dictionnary containing the job ids of the jobs that are to be recovered.
+    service: QiskitRuntimeService used running the jobs you wish the recover.
 
     Returns: List of values corresponding to the results of the Estimator.
     """
 
     # Defining estimator
-    if noisy_simulation is True:
-        estimator = Noisy_Estimator(backend_options=estimator_options)
-    elif run_on_quantum_computer is True:
-        init_layout,*rest = find_best_layout(circuit=circuit,backend=backend,num_tries=10,seed=50)
-        options = Options()
-        options.transpilation.initial_layout=init_layout
-        estimator = QC_Estimator(backend = backend,options=options)
-    else:
-        estimator = Estimator()
-
-    # Running job
-    job = estimator.run([circuit]*len(observables),observables)
-
     if run_on_quantum_computer is True:
-        print(f">>> Job ID: {job.job_id()}")
-        print(f">>> Job Status: {job.status()}")
-    else:
-        print('Quantum Computer simulation...')
 
-    # Fetching results
-    result = job.result()
-    values = result.values # This outputs all the values of the matrix in the order they were calculated above.
-          # This order is line by line, from left to right, ommiting the elements we are not calculating.
+        with Session(backend=backend) as session:
+            jobs = {}
+
+            if recover_jobs is True:
+                for job_num,job_id in job_ids.items():
+                    print(f'Job #{job_num[-1]} is recovered.')
+                    jobs[f'job{job_num[-1]}'] = service.job(job_id)
+        
+            options = Options()
+            init_layout,*rest = find_best_layout(circuit=circuit,backend=backend,num_tries=10,seed=50)
+            options.transpilation.initial_layout=init_layout
+            estimator = QC_Estimator(session=session,options=options)
+            
+            total_jobs = len(observables)/max_circuit
+            job_num = 0
+            while job_num < total_jobs:
+                if not f'job{job_num}' in jobs:
+                    print(f'Job #{job_num} is queued.')
+                    split_observables = observables[max_circuit*job_num:max_circuit*(job_num+1)]
+                    jobs[f'jobs{job_num}'] = estimator.run([circuit]*len(split_observables),split_observables)
+                job_num += 1
+
+            values = []
+            for job in sorted(jobs):
+                values.extend(jobs[job].result().values)
+                    
+            session.close()
+
+    else:
+
+        print('Quantum Computer simulation...')
+        if noisy_simulation is True:
+            estimator = Noisy_Estimator(backend_options=estimator_options)
+        else:
+            estimator = Estimator()
+
+        # Fetching results
+        job = estimator.run([circuit]*len(observables),observables)
+        result = job.result()
+        values = result.values
 
     return values
 
@@ -396,8 +428,12 @@ if __name__ == '__main__':
             observables=observables_all,
             circuit=circuit,
             backend=backend,
+            max_circuit=max_circuit_per_job,
+            service=service,
             noisy_simulation=noisy_simulation,
-            run_on_quantum_computer=run_on_quantum_computer
+            run_on_quantum_computer=run_on_quantum_computer,
+            recover_jobs = recover_jobs,
+            job_ids = job_ids
             )
 
         # Extracting the proper matrix values from the output of job() depending on the type of the matrix
@@ -415,14 +451,17 @@ if __name__ == '__main__':
 
     else:
         print('##### '+generate_matrix+' #####')
-
         observables = matrix_observables(generate_matrix,lines_doc,N,spin_green,Hamiltonian)
         values = job(
             observables=observables,
             circuit=circuit,
             backend=backend,
+            max_circuit=max_circuit_per_job,
+            service=service,
             noisy_simulation=noisy_simulation,
-            run_on_quantum_computer=run_on_quantum_computer
+            run_on_quantum_computer=run_on_quantum_computer,
+            recover_jobs = recover_jobs,
+            job_ids = job_ids
             )
         print(matrix(type,N,values))
 

@@ -2,12 +2,22 @@
 # For yes: True
 # For no: False
 
-# IBM Credentials and bakcend
-run_on_quantum_computer = False
+# IBM Credentials and parameters
+run_on_quantum_computer = True
+max_circuit_per_job = 30
+
 channel = "ibm_quantum"
-token = "token"
-backend_device = "ibmq_quito"
-    #List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
+token = "token here"
+backend_device = "ibmq_sherbrooke"
+    # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
+
+recover_job = True
+job_ids = {# Add the ids of the job in the same order they were submitted intially.
+    'job0': '',
+    'job1': '',
+    'job2': '',
+    ...
+} 
 
 
 # Physic parameters
