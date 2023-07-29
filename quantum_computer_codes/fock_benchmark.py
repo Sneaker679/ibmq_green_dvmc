@@ -34,7 +34,7 @@ from hubbard_classes import hubbard
 
 
 # Print options
-np.set_printoptions(linewidth = 1000,precision=4)
+np.set_printoptions(linewidth = 1000,precision=2,suppress=True)
 
 
 ### FUNCTIONS ################################################

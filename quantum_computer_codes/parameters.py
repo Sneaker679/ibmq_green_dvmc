@@ -12,6 +12,7 @@ backend_device = "ibmq_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Backend Options
+custom_qubits = []
 optimization_level = 3              # int
 resilience_level = 1                # int
 max_execution_time = None           # int or None
@@ -31,7 +32,7 @@ job_ids = {# Add the ids of the job in the same order they were submitted intial
 
 
 ### Physic parameters ###
-N = 2
+N = 4
 t = -1
 U = 4
 mu = 2
@@ -48,7 +49,7 @@ decompose_and_print_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites.def'
+excit_document = f'excitation{N}sites_incomplete.def'
 
 
 ### Noisy simulation ###
@@ -173,6 +174,7 @@ if not os.path.exists(output_directory):
 pdf_output_directory = os.getcwd()
 ####################################
 
+### DON'T MODIFY
 quantum_computer_options = Options(
     optimization_level = optimization_level,
     resilience_level = resilience_level,

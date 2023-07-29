@@ -11,7 +11,7 @@
 - [Todo](#todo)
 
 ## Installation
-This is a Python code. Use the latest version of language as of 15/06/2023 to avoid issues.
+This is a Python code. Use the latest version of language as of 29/07/2023 to avoid issues.
 To run this code, you will need to install the following packages for your Python. The links to their documentation is also provided :
 - qiskit-->  (https://qiskit.org/documentation/getting_started.html)
 - qiskit-nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
@@ -101,5 +101,4 @@ Your `combined_spectrum.pdf` is stored in the same folder as `parameters.py`.
 In the directory `quantum_computer_codes/examples`, there are some directories containing basic examples that show how to run the code. Refer to the README in this directory.
 
 ## TODO
-- Add a code to generate excitation.def files automatically.
 - Debugging.

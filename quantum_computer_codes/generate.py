@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
+from datetime import datetime
 from mpire import WorkerPool
 from qiskit_ibm_runtime import Session,QiskitRuntimeService,Estimator as QC_Estimator
 from qiskit_ibm_runtime.options import Options
@@ -26,7 +27,7 @@ from parameters import (
     excit_document,output_directory,
     aer_estimator_options,quantum_computer_options,
     noisy_simulation,run_on_quantum_computer,
-    token,channel,backend_device,max_circuit_per_job,
+    token,channel,backend_device,max_circuit_per_job,custom_qubits,
     recover_jobs,job_ids,    
     force_custom_circuit,
 )
@@ -47,7 +48,7 @@ from mapping import find_best_layout
 
 
 ### Print options ##########################################
-np.set_printoptions(linewidth= 10000,precision=2,suppress=True)
+np.set_printoptions(linewidth= 1000,precision=2,suppress=True)
 
 
 ### Print Circuit ##########################################
@@ -293,6 +294,7 @@ def job(observables,circuit,backend,
         aer_estimator_options=None,
         run_on_quantum_computer=False,
         quantum_computer_options=None,
+        custom_qubits= [],
         recover_jobs = False,
         job_ids = {},
         service=None
@@ -325,19 +327,33 @@ def job(observables,circuit,backend,
                     print(f'Job #{job_num[-1]} is recovered.')
                     jobs[f'job{job_num[-1]}'] = service.job(job_id)
         
-            options = Options()
-            init_layout,*rest = find_best_layout(circuit=circuit,backend=backend,num_tries=10,seed=50)
+            options = quantum_computer_options
+
+            custom_qubits = list(set(custom_qubits))
+            if not custom_qubits:
+                init_layout,*rest = find_best_layout(circuit=circuit,backend=backend,num_tries=10,level=3,seed=50)
+            else:
+                if not len(custom_qubits) == circuit.num_qubits:
+                    raise Exception("Number of inputted qubits doesn't match the number of qubits necessary.") 
+                init_layout = custom_qubits
+
+            print('Chosen qubits:',init_layout)
             options.transpilation.initial_layout=init_layout
             estimator = QC_Estimator(session=session,options=options)
             
-            total_jobs = len(observables)/max_circuit
-            job_num = 0
-            while job_num < total_jobs:
-                if not f'job{job_num}' in jobs:
-                    print(f'Job #{job_num} is queued.')
-                    split_observables = observables[max_circuit*job_num:max_circuit*(job_num+1)]
-                    jobs[f'jobs{job_num}'] = estimator.run([circuit]*len(split_observables),split_observables)
-                job_num += 1
+            with open(f'{working_directory}/JobIDs.txt','a') as file:
+                file.write(f'\n Program launched: {datetime.now()}. New jobs are below, if any.')
+                total_jobs = len(observables)/max_circuit
+                job_num = 0
+                while job_num < total_jobs:
+                    if not f'job{job_num}' in jobs:
+                        split_observables = observables[max_circuit*job_num:max_circuit*(job_num+1)]
+                        jobs[f'job{job_num}'] = estimator.run([circuit]*len(split_observables),split_observables)
+                        job_id = jobs[f'job{job_num}'].job_id()
+                        print(f'Job #{job_num} is queued. ID:',job_id)
+                        file.write(f'\nJob #{job_num}. ID: {job_id}')
+                    job_num += 1
+
 
             values = []
             for job in sorted(jobs):
@@ -438,6 +454,7 @@ if __name__ == '__main__':
             aer_estimator_options=aer_estimator_options,
             run_on_quantum_computer=run_on_quantum_computer,
             quantum_computer_options=quantum_computer_options,
+            custom_qubits=custom_qubits,
             recover_jobs = recover_jobs,
             job_ids = job_ids
             )
@@ -468,6 +485,7 @@ if __name__ == '__main__':
             aer_estimator_options=aer_estimator_options,
             run_on_quantum_computer=run_on_quantum_computer,
             quantum_computer_options=quantum_computer_options,
+            custom_qubits=custom_qubits,
             recover_jobs = recover_jobs,
             job_ids = job_ids
             )

@@ -43,7 +43,7 @@ for i in zip(aij[::-1],w[::-1]):
 # Finding the number of rows (sites)
 for site in range(num_rows-1):
     # Step between the lines of each site
-    step = 0.5
+    step = 1
     lines = []
 
     # Drawing graph for ibmq

@@ -26,7 +26,8 @@ Or when manip = 'Y':
 def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+',manip=False,prt=False,qis_not=False):
     """Parameters
     N: Number of sites
-    t: Hopping matrix
+    t: Hopping energy
+    hopping_matrix : is the hopping matrix. 1 = possible jump, and 0 = impossible jump
     U: Potential energy
     mu: Chemical potential
     spin_gs: The total spin the ground state should have ('+' or '-')
@@ -234,16 +235,11 @@ def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+
     if manip is True:
         return blocks_matrix,blocks_num,gs_blocks,blocks,gs_numerical_states
 '''
-mu = 3.8
-rep1=1
-rep2=2
-#while not rep1 == rep2:
-while True:
-#while False:
-    rep1 = hubbard(mu=mu,spin_gs='+')[2]
-    rep2 = hubbard(mu=3,spin_gs='+')[2]
-    mu+=0.1
-    print(mu)
-    print(rep1,rep2)
-    print()
+hopping_matrix = np.matrix([
+    [0,1,1,0],
+    [1,0,0,1],
+    [1,0,0,1],
+    [0,1,1,0]
+])
+print(hubbard(N=4,mu=0,hopping_matrix=hopping_matrix,qis_not=True)[2])
 '''

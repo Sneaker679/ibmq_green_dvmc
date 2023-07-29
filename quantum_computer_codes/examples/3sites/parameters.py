@@ -32,7 +32,7 @@ job_ids = {# Add the ids of the job in the same order they were submitted intial
 
 
 ### Physic parameters ###
-N = 4
+N = 3
 t = -1
 U = 4
 mu = 2
@@ -120,8 +120,9 @@ lattice = LineLattice(num_nodes = N, boundary_condition = boundary_condition)
 # A possible hopping is 1
 # No possible hopping is 0
 hopping_matrix = np.matrix([
-    [0,1],
-    [1,0]
+    [0,1,0],
+    [1,0,1],
+    [0,1,0]
 ])
 
 #########################################
@@ -140,7 +141,7 @@ if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and le
     
     CM = pyqcm.cluster_model(N)
 
-    clus_coordinates = ((0,0,0),(1,0,0))
+    clus_coordinates = ((0,0,0),(1,0,0),(2,0,0))
 
     clus = pyqcm.cluster(CM,clus_coordinates)
     model = pyqcm.lattice_model('custom', clus, ((1000,0,0),))

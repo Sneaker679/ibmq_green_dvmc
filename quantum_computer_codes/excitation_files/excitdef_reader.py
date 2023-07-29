@@ -14,5 +14,7 @@ def excitdef_reader(document_name,file_location=''):
     for line_number in range(len(lines_doc)):
         lines_doc[line_number] = lines_doc[line_number].split() 
         lines_doc[line_number] = [eval(number) for number in lines_doc[line_number]]
-    
+    for index,line in enumerate(lines_doc):
+        if line == []:
+            del lines_doc[index]
     return lines_doc

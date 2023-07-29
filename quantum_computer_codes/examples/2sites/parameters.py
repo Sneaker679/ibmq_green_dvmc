@@ -12,6 +12,7 @@ backend_device = "ibmq_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Backend Options
+custom_qubits = []
 optimization_level = 3              # int
 resilience_level = 1                # int
 max_execution_time = None           # int or None
@@ -173,6 +174,7 @@ if not os.path.exists(output_directory):
 pdf_output_directory = os.getcwd()
 ####################################
 
+### DON'T MODIFY
 quantum_computer_options = Options(
     optimization_level = optimization_level,
     resilience_level = resilience_level,

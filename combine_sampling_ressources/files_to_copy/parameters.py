@@ -7,17 +7,16 @@ run_on_quantum_computer = False
 max_circuit_per_job = 30
 
 channel = "ibm_quantum"
-token = "token here"
-backend_device = "ibmq_sherbrooke"
+token = "cb126676620a07ab41a804717ada1d62b22f5d747e049bb7bf1c034e6f913c691898cc5b52078044b23df49c747dbc1dae34c08b670967ad0d2d9f810c112bbe"
+backend_device = "ibm_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Backend Options
-custom_qubits = []
 optimization_level = 3              # int
 resilience_level = 1                # int
 max_execution_time = None           # int or None
 execution = {
-    'shots' : 4000,                 # int
+    'shots' : 6000,                 # int
     'init_qubits' : True            # Boolean
     }
 
@@ -32,7 +31,7 @@ job_ids = {# Add the ids of the job in the same order they were submitted intial
 
 
 ### Physic parameters ###
-N = 4
+N = 2
 t = -1
 U = 4
 mu = 2
@@ -41,7 +40,7 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 ### Code parameters ###
-use_qcm = False
+use_qcm = True
 
 force_custom_lattice = False
 force_custom_circuit = False
@@ -174,7 +173,6 @@ if not os.path.exists(output_directory):
 pdf_output_directory = os.getcwd()
 ####################################
 
-### DON'T MODIFY
 quantum_computer_options = Options(
     optimization_level = optimization_level,
     resilience_level = resilience_level,
