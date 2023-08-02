@@ -3,7 +3,7 @@
 # For no: False
 
 ### IBM Credentials and parameters ###
-run_on_quantum_computer = True
+run_on_quantum_computer = False
 max_circuit_per_job = 30
 
 channel = "ibm_quantum"
@@ -35,7 +35,7 @@ job_ids = {# Add the ids of the job in the same order they were submitted intial
 N = 2
 t = -1
 U = 4
-mu = 0
+mu = 2
 spin_green = '-'                                 # Either '+' or '-'.
 spin_gs = '+'                                    # Either '+' or '-'.
 
@@ -49,7 +49,7 @@ decompose_and_print_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites_incomplete_more.def'
+excit_document = f'excitation{N}sites.def'
 
 
 ### Noisy simulation ###
