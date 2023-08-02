@@ -56,7 +56,6 @@ if N == 2 and force_custom_circuit is False and continue_with_diag is False:
     print('Using hardcoded circuit.')
     print(circuit)
 
-
 ### IBM Service ############################################
 if run_on_quantum_computer is True:
     service = QiskitRuntimeService(channel=channel, token=token)

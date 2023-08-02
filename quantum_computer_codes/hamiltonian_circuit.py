@@ -118,10 +118,10 @@ Hamiltonian = FermiHubbardModel(
 '''Qiskit needs a circuit so that it can calculate the desired element of the H and S matrices.
 This circuit is either created automatically here, or customized in parameters.py.'''
 
+continue_with_diag = False
 if force_custom_circuit is False: 
 
     # Choosing circuit if N == 2. These circuits are hardcoded.
-    continue_with_diag = False
     if N == 2:
         q = QuantumRegister(2*N)
         circuit = QuantumCircuit(q)
