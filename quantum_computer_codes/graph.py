@@ -119,6 +119,7 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking=False):
   H_CA = 0.5*(H_CA+np.transpose(np.conjugate(H_CA)))
   S_CA = 0.5*(S_CA+np.transpose(np.conjugate(S_CA)))
 
+
   s = time.time()
   # eigenvalue decomposition of overlap matrix, S
   SV_AC, U_SVD_AC = eigh(S_AC)
@@ -238,7 +239,9 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking=False):
 
   u_ac2 = u_ac[:Nc,:] 
   u_ca2 = u_ca[:Nc,:]    
-
+  
+  print_solution_for_QCM(u_ac2,e_ac2,u_ca2,e_ca2)
+  
   # Compute G(w) = Sbar^(1/2) * U_M * ((w + i * eta +- Omega) + E)^-1 * U_M^-1 * Sbar^(1/2)
   print("computing G(w) for range of frequencies")
   s = time.time()
@@ -315,7 +318,9 @@ def dvmc_spectrum(Omega,verbose=1,fock_benchmarking=False):
   #matplotlib.use('Agg')
   plt.savefig(os.path.join(pdf_output_directory,file_name))
   #plt.show()
-   
+  
+
+
   sys.exit()  
 
 

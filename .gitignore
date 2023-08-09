@@ -1,4 +1,6 @@
 __pycache__
 *.swp
 *.pdf
+*.tex
+quantum_computer_codes/excitation_files/extra_excitation_files
 important_graphs/

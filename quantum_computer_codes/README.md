@@ -6,6 +6,11 @@
 - channel : Channel to connect to. To connect to IBM quantum computers, input 'ibm_quantum'
 - token : Refer to your IBM account for your token.
 - backend_device : Name of the device to run the simulation on. The list of available backends is on the IBM website. The link is provided [here](https://quantum-computing.ibm.com/services/resources?tab=yours).
+- custom_qubits : Inside this list, specify the qubits to be used on the quantum computer. If left empty, it will try to find the best qubits, although the code might make mistakes and also not work if the circuit is insufficiently big.
+- optimisation_level : How much runtime is optimized. See qiskit's documentation for more info on this parameter.
+- resilience_level : How much the execution resists noise. See qiskit's documentation for more info on this parameter.
+max_execution_time : Maximum runtime of the job. Leave it to None to not apply any limits.
+- execution (dict) : Dictionnary containing some important parameters, like the number of shots of the circuit. Shots are the number of time a single circuit is ran for a single measure. More shots mean less noise, but longer runtimes.
 - recover_jobs: Boolean that dictates if the code should try to recover jobs that were already ran on IBM quantum.
 - job_ids : Dictionnary that contains the jobs ids of the jobs to be recovered. Format : {'job0':'id1', 'job3':'id3',...}. Downside is that you have to know in what order the jobs were sent.
 
@@ -27,6 +32,7 @@
 
 - force_custom_circuit (Y/N): By default, the code will initialize the qubits of the circuit with an exact ground state vector. If you wish to test your own custom circuit, input 'Y'.
 - decompose_and_print_circuit (Y/N): The circuit used in the code can be decomposed by qiskits into more elementary gates. By decomposing the circuit, said circuit will be printed in the CMD for you to see, and this decomposed circuit will also be used in the code. You will quickly notice that it is not very practical to have this on, because calculation times are way longer and the circuit itself becomes enourmous.
+- produce_latex_circuit : Boolean that states if the latex commands to create an image of the used circuit should be printed in the cmd.
 
 - generate_npy (Y/N): This is for saving, or not, the matrices as `.npy` files. These should always be left on 'Y', because `graph.py` uses these files as input for the program.
 - generate_matrix (H+,H-,S+,S-,ALL) : By default, this is on 'ALL'. It means that everytime you run the code, all the matrices are going to be calculated again. If you only want to calculate one, then you change this parameter to reflect that choice.    
@@ -45,4 +51,3 @@ graph_for_qcm: Boolean that dictates if `combined_graph.py` should graph the qcm
 
 # Custom Circuits
 With this code, you can use your custom circuits to calculate the Green function. However, be aware that qiskit has a very specific notation to use. Indeed, each qubits correspond to these positions in fock's basis: |... 5 4 3 2 1 0 >. In other words, the first qubit starts to the right. This is important because in order to create, for example, state #8, you need to apply circuit.x(3) and NOT circuit.x(0). 
-

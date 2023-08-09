@@ -7,16 +7,17 @@ run_on_quantum_computer = False
 max_circuit_per_job = 30
 
 channel = "ibm_quantum"
-token = "cb126676620a07ab41a804717ada1d62b22f5d747e049bb7bf1c034e6f913c691898cc5b52078044b23df49c747dbc1dae34c08b670967ad0d2d9f810c112bbe"
+token = "token"
 backend_device = "ibm_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Backend Options
+custom_qubits = []
 optimization_level = 3              # int
 resilience_level = 1                # int
 max_execution_time = None           # int or None
 execution = {
-    'shots' : 6000,                 # int
+    'shots' : 4000,                 # int
     'init_qubits' : True            # Boolean
     }
 
@@ -40,15 +41,16 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 ### Code parameters ###
-use_qcm = True
+use_qcm = False
 
 force_custom_lattice = False
 force_custom_circuit = False
 decompose_and_print_circuit = False
+produce_latex_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites.def'
+excit_document = f'excitation{N}sites_incomplete.def'
 
 
 ### Noisy simulation ###
@@ -87,6 +89,7 @@ graph_for_qcm = True
 import matplotlib as mpl
 from qiskit_ibm_runtime.options import Options
 from qiskit import QuantumCircuit,QuantumRegister
+from qiskit.compiler import transpile
 from qiskit_nature.second_q.hamiltonians.lattices import (
     Lattice,
     BoundaryCondition,
@@ -154,10 +157,51 @@ if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and le
 ####################################
 
 # Don't modify this following line #
-circuit = QuantumCircuit(2*N)
+qr = QuantumRegister(2*N,'qr')
+circuit = QuantumCircuit(qr)
+'''
+θ = np.arccos(np.sqrt(8)*0.26136036)
+ϕ = np.arccos(2*0.30581423/np.sin(θ))
+#we build the spin down:
+circuit.ry(2*θ,0)
+circuit.ch(target_qubit=2,control_qubit=0,ctrl_state=0)
+circuit.cry(2*ϕ,target_qubit=3,control_qubit=0)
+circuit.ccx(target_qubit=1,control_qubit1=0,control_qubit2=2,ctrl_state=0)
+circuit.cx(target_qubit=0,control_qubit=3)
 
-circuit.x(0)
+#we build the spin up:
+circuit.h(4)
+circuit.h(5)
+circuit.ccx(target_qubit=6,control_qubit1=5,control_qubit2=4)
+circuit.ccx(target_qubit=7,control_qubit1=5,control_qubit2=4,ctrl_state=0)
+circuit.cx(target_qubit=5,control_qubit=6)
+circuit.cx(target_qubit=4,control_qubit=6)
 
+# we apply the swaps:
+circuit.cswap(control_qubit=4, target_qubit1=3, target_qubit2=0)
+circuit.cswap(control_qubit=5, target_qubit1=3, target_qubit2=1)
+circuit.cswap(control_qubit=5, target_qubit1=2, target_qubit2=0)
+circuit.cswap(control_qubit=6, target_qubit1=3, target_qubit2=2)
+circuit.cswap(control_qubit=6, target_qubit1=1, target_qubit2=0)
+
+# we apply the phase:
+circuit.cz(control_qubit=4,target_qubit=3)
+circuit.cz(control_qubit=4,target_qubit=2)
+circuit.cz(control_qubit=4,target_qubit=1)
+
+circuit.cz(control_qubit=5,target_qubit=2)
+circuit.cz(control_qubit=5,target_qubit=3)
+
+circuit.cz(control_qubit=6,target_qubit=3)
+
+
+circuit.draw('mpl')
+import matplotlib.pyplot as plt
+plt.show()
+
+
+circuit = transpile(circuit, initial_layout=[qr[0],qr[4],qr[1],qr[5],qr[2],qr[6],qr[3],qr[7]])
+'''
 ####################################
 
 
@@ -173,6 +217,7 @@ if not os.path.exists(output_directory):
 pdf_output_directory = os.getcwd()
 ####################################
 
+### DON'T MODIFY
 quantum_computer_options = Options(
     optimization_level = optimization_level,
     resilience_level = resilience_level,

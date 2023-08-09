@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys,os
 from qiskit.primitives import Estimator
+from qiskit.visualization import circuit_drawer
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from qiskit_nature.second_q.operators import FermionicOp
 from qiskit import QuantumCircuit,QuantumRegister
@@ -14,6 +15,7 @@ from qiskit_nature.second_q.hamiltonians.lattices import Lattice
 ### Fetching parameters.py and importing qcm ################
 module_directory = os.path.dirname(__file__)
 sys.path.insert(0,module_directory)
+working_directory = os.getcwd()
 
 from parameters import *
 
@@ -120,11 +122,11 @@ This circuit is either created automatically here, or customized in parameters.p
 
 continue_with_diag = False
 if force_custom_circuit is False: 
+    q = QuantumRegister(2*N)
+    circuit = QuantumCircuit(q)
 
     # Choosing circuit if N == 2. These circuits are hardcoded.
     if N == 2:
-        q = QuantumRegister(2*N)
-        circuit = QuantumCircuit(q)
         if mu >= 5:
             circuit.x(0)
             circuit.x(1)
@@ -160,6 +162,7 @@ if force_custom_circuit is False:
             circuit.cx(1,2)
             circuit.cz(1,2)
             circuit.swap(1,2)
+            
         elif mu <= 0.1714 and mu > -1 and spin_gs == '+':
             circuit.h(3)
             circuit.cx(3,1)
@@ -173,9 +176,47 @@ if force_custom_circuit is False:
         else:
             print('No hardcoded circuits available for that configuration.\nProceeding with exact diagonalisation.')
             continue_with_diag = True
-    
 
-    if not N == 2 or continue_with_diag is True:
+    if N == 4:
+        if mu > -1.43 and mu < 0.66:
+            eigen = np.linalg.eigh(JordanWignerMapper().map(Hamiltonian).to_matrix().real)
+            gs_vec = eigen[1][:,0].tolist()
+
+            ang1 = np.arccos(np.sqrt(8)*gs_vec[9])
+            ang2 = np.arccos(2*gs_vec[36]/np.sin(ang1))
+
+            circuit = QuantumCircuit(8)
+            circuit.ry(2*(ang1),0)
+            circuit.cry(2*(ang2),0,2)
+            circuit.ch(0,2,ctrl_state=0)
+
+            circuit.cswap(2,0,6,ctrl_state=0)
+            circuit.ccx(0,2,4,ctrl_state='10')
+            circuit.cx(6,2)
+            circuit.x(2)
+
+            circuit.h(1)
+            circuit.h(3)
+
+            circuit.cswap(3,1,7,ctrl_state=0)
+            circuit.ccx(1,3,5,ctrl_state='10')
+            circuit.cx(7,3)
+            circuit.x(3)
+
+            circuit.cswap(7,0,6)
+            circuit.cswap(5,0,4)
+            circuit.cswap(5,2,6)
+            circuit.cswap(3,0,2)
+            circuit.cswap(3,4,6)
+
+            circuit.cz(0,1,ctrl_state=0)
+            circuit.ccz(0,2,3,ctrl_state=0)
+            circuit.cz(6,5)
+        else:
+            print('No hardcoded circuits available for that configuration.\nProceeding with exact diagonalisation.')
+            continue_with_diag = True
+
+    if (not N == 2 and not N == 4) or continue_with_diag is True:
         """We calculate the exact ground state and use that vector to initialize the qubits."""
         print('Using exact diagonalisation for the ground state circuit...')
 
@@ -241,6 +282,10 @@ if force_custom_circuit is True:
     overrides the custom circuit for the automatic one."""
     print('Using custom ground state circuit...')
 print()
+
+if produce_latex_circuit is True:
+    with open(os.path.join(working_directory,'latex_circuit.tex'),'w') as file:
+        file.write(circuit_drawer(circuit,output='latex_source'))
 
 #######################################################
 

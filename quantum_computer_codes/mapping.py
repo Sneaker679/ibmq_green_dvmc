@@ -75,4 +75,3 @@ def mapping_to_permutation(mapping:dict):
 
 def optimize_init_layout(circuit,backend,num_tries,level=3,seed=1123123,initial_layout = None):
     return find_best_layout(circuit,backend,num_tries,level,seed,initial_layout=initial_layout)
-

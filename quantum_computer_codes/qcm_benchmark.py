@@ -1,6 +1,7 @@
 ### Packages ################################################
 import numpy as np
 import sys,os
+import matplotlib.pyplot as plt
 
 ### Fetching parameters.py and hamiltonian_circuit.py #######
 module_directory = os.path.dirname(__file__)
@@ -11,6 +12,7 @@ sys.path.insert(0,working_directory)
 
 try:
     import pyqcm
+    from pyqcm._spectral import __frequency_array
 except:
     print()
     print('Pyqcm not installed! Skipping the qcm benchamrk.')
@@ -25,7 +27,7 @@ if use_qcm is False:
     print()
     sys.exit()
 
-from hamiltonian_circuit import model
+from hamiltonian_circuit import model,CM,clus
 
 
 # Making a list of sectors where the GS probably is.
@@ -87,12 +89,32 @@ if spin_green == '+':
 else:
     spin_down = True
 
-result = I.cluster_spectral_function(blocks=True,file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15,spin_down=spin_down)
+#result = I.cluster_spectral_function(blocks=True,file= os.path.join(pdf_output_directory,'qcm_spectrum.pdf'),eta=0.1,wmax=15,spin_down=spin_down)
+
+w_ = __frequency_array(wmax=15,eta=0.1)
+d = I.model.dimGFC[0]
+A = np.zeros((len(w_), d))
+for omega in range(len(w_)):
+    g = I.cluster_Green_function(w_[omega],spin_down=spin_down,blocks=True)
+    for j in range(d):
+        A[omega, j] += -g[j, j].imag
+
+max = np.max(A)
+plt.ylim(0, d * 2 + max)
+plt.gca().set_xlim(np.real(w_[0]), np.real(w_[-1]))
+for j in range(d):
+    plt.plot(np.real(w_), A[:, j] + 2 * j, '-', lw=0.5, color='b')
+plt.xlabel(r'$\omega$')
+plt.axvline(0, ls='solid', lw=0.5)
+plt.title(I.model.parameter_string(), fontsize=9)
+plt.savefig(os.path.join(pdf_output_directory,'qcm_spectrum.pdf'))
+plt.close()
 
 # Generating local dos
-file_dos_qcm   = open(os.path.join(output_directory,'local_dos_qcm.dat'),'w')
-w_ = result[0]
-local_dos = result[1]
+file_dos_qcm = open(os.path.join(output_directory,'local_dos_qcm.dat'),'w')
+#w_ = result[0]
+w_ = np.real(w_)
+local_dos = A
 for ii in range(len(w_)):
     file_dos_qcm.write('% 7.6f   '  %w_[ii])
     for kk in range(N):

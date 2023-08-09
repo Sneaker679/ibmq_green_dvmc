@@ -312,8 +312,8 @@ if __name__ == "__main__":
             print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
             print()
     else:
-        print(type+':')
-        print(matrix(type,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
+        print(generate_matrix+':')
+        print(matrix(generate_matrix,lines_doc,N,spin_green,spin_gs,t,hopping_matrix,U,mu,generate_npy))
         
 
     # Generating graph using graph.py

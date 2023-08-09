@@ -38,17 +38,7 @@ for directory in directories:
     shot = directory.split('_')[-1][0:-2]
     shots_list.append(int(shot))
 
-# Creating empty matrices of correct sizes.
-matrices = []
-matrix_types = ['H_AC','H_CA','S_AC','S_CA']
-H_AC_sum = np.zeros(np.load(os.path.join(directories[0],os.path.join('output','H_AC.npy'))).shape)
-H_CA_sum = np.zeros(np.load(os.path.join(directories[0],os.path.join('output','H_CA.npy'))).shape)
-S_AC_sum = np.zeros(np.load(os.path.join(directories[0],os.path.join('output','S_AC.npy'))).shape)
-S_CA_sum = np.zeros(np.load(os.path.join(directories[0],os.path.join('output','S_CA.npy'))).shape)
-matrices.append(H_AC_sum)
-matrices.append(H_CA_sum)
-matrices.append(S_AC_sum)
-matrices.append(S_CA_sum)
+# Fetching reference matrices
 ref = []
 ref.append(np.load(os.path.join(directories[0],os.path.join('output','H_AC_fock.npy'))))
 ref.append(np.load(os.path.join(directories[0],os.path.join('output','H_CA_fock.npy'))))
@@ -56,52 +46,59 @@ ref.append(np.load(os.path.join(directories[0],os.path.join('output','S_AC_fock.
 ref.append(np.load(os.path.join(directories[0],os.path.join('output','S_CA_fock.npy'))))
 
 
-print('\nPrint matrices?')
-print('    Option 1: y')
-print('    Option 2: n')
-prt = input('Selected option: ')
-if prt.lower() == 'y':
-    prt = True
-else:
-    prt = False
+final_shape = np.load(os.path.join(directories[0],os.path.join('output','H_AC.npy'))).shape
+N = int(directory[0][0])
 
-# Appliying modifications to the matrices, and combining them using an average.
-N = int(directories[0][0])
+# Loading matrices
+matrix_types = ['H_AC','H_CA','S_AC','S_CA']
+matrices = [[],[],[],[]]
 for index,matrix_type in enumerate(matrix_types):
-    for ii in zip(directories,shots_list):
-        directory = ii[0]
+    for index2, directory in enumerate(directories):
         directory_list_form = directory.split('_')
         directory_date,label = int(directory_list_form[-4]),int(directory_list_form[-2])
 
-        matrix_path = os.path.join(ii[0],os.path.join('output',f'{matrix_type}.npy'))
+        matrix_path = os.path.join(directory,os.path.join('output',f'{matrix_type}.npy'))
         matrix = np.load(matrix_path)
-
-        matrices[index] = np.add(matrices[index],matrix*(ii[1])/sum(shots_list))
 
         shape = matrix.shape
 
-        if prt is True:
-            print(matrix_type,directory)
-            zeros = np.zeros((shape[0],1))
-            print(np.concatenate((matrix,zeros,matrices[index],zeros,ref[index]),axis=1))
-            print()
+        matrices[index].append(matrix)
+		
 
-#name_of_directory = input('Name of the new directory: ')
+# Create 3D matrix
+nd_H_AC = np.zeros((len(directories),final_shape[0],final_shape[1]))
+nd_H_CA = np.zeros((len(directories),final_shape[0],final_shape[1]))
+nd_S_AC = np.zeros((len(directories),final_shape[0],final_shape[1]))
+nd_S_CA = np.zeros((len(directories),final_shape[0],final_shape[1]))
+nd_matrices = [nd_H_AC,nd_H_CA,nd_S_AC,nd_S_CA]
+
+for nd_index,nd_matrix in enumerate(nd_matrices):
+    for index,matrix in enumerate(matrices[nd_index]):
+        for row in range(final_shape[0]):
+            for column in range(final_shape[1]):
+                nd_matrices[nd_index][index,row,column] = matrix[row,column]
+
+
+# Median
+median_matrices = []
+for nd_matrix in nd_matrices:
+    median_matrices.append(np.median(nd_matrix,axis=0))
+
 mu = int(directory_list_form[1].split('u')[1])
 total_shots = sum(shots_list)
 today = date.today()
 date = today.strftime("%b %d %Y").split()
 month,day = date[0].lower(),int(date[1])
 label = 1
-name_of_directory = f'combined_{N}sites_mu{mu}_{day}_{month}_{label}_{total_shots}sh'
+name_of_directory = f'median_{N}sites_mu{mu}_{day}_{month}_{label}_{total_shots}sh'
 
 while os.path.exists(name_of_directory):
     label += 1
-    name_of_directory = f'combined_{N}sites_mu{mu}_{day}_{month}_{label}_{total_shots}sh'
+    name_of_directory = f'median_{N}sites_mu{mu}_{day}_{month}_{label}_{total_shots}sh'
     
 os.mkdir(name_of_directory)
 os.mkdir(os.path.join(name_of_directory,'output'))
-for matrix in zip(matrices,matrix_types):
+for matrix in zip(median_matrices,matrix_types):
     np.save(os.path.join(name_of_directory,os.path.join('output',matrix[1])),matrix[0])
 
 # Untested for not linux systems

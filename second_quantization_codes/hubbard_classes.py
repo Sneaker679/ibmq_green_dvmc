@@ -234,12 +234,3 @@ def hubbard(N=2,t=-1,hopping_matrix=np.matrix([[0,1],[1,0]]),U=4,mu=2,spin_gs='+
         return gs_energy,gs_numerical_states,gs_blocks_num,gs_blocks_matrix
     if manip is True:
         return blocks_matrix,blocks_num,gs_blocks,blocks,gs_numerical_states
-'''
-hopping_matrix = np.matrix([
-    [0,1,1,0],
-    [1,0,0,1],
-    [1,0,0,1],
-    [0,1,1,0]
-])
-print(hubbard(N=4,mu=0,hopping_matrix=hopping_matrix,qis_not=True)[2])
-'''

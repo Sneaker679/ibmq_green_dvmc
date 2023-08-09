@@ -50,9 +50,8 @@ from mapping import find_best_layout
 ### Print options ##########################################
 np.set_printoptions(linewidth= 1000,precision=2,suppress=True)
 
-
 ### Print Circuit ##########################################
-if N == 2 and force_custom_circuit is False and continue_with_diag is False:
+if (N == 2 or (N == 4 and mu < 0.66 and mu > -1.43)) and force_custom_circuit is False and continue_with_diag is False:
     print('Using hardcoded circuit.')
     print(circuit)
 
@@ -419,6 +418,7 @@ def matrix(type,N,values,save=True):
     excitation_matrix = np.tril(excitation_matrix.T,-1) + excitation_matrix
 
     if save is True:
+        print(type)
         if type[1] == '+':
             identifier = '_AC'
         if type[1] == '-':
@@ -488,7 +488,7 @@ if __name__ == '__main__':
             recover_jobs = recover_jobs,
             job_ids = job_ids
             )
-        print(matrix(type,N,values))
+        print(matrix(generate_matrix,N,values))
 
         end = time.time()
         print('Time:',end-start,'seconds.')

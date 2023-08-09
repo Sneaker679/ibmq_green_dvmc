@@ -24,8 +24,6 @@ To run this code, you will need to install the following packages for your Pytho
 
 Note that the "qcm" package is not manditory as its only purpose is to benchmark the calculations using the quantum computer.
 
-Also note that in its current form, the "qcm" package needs a custom modification so it can work with the current code. In the "qcm" package, locate `pyqcm/_spectral.py` and find in it the "*cluster_spectral_function*" function. Remove the hashtags preceding the "*return*" at the end. You will need to rebuild the package and perform all the installation steps again, as described by the documentation.
-
 ## Description
 This code is meant to calculate the Green Function for a specified system of low amount of sites. Instead of calculating it using conventional binary based computers, we simulate the calculation on a quantum computer using the qiskit package. 
 
@@ -41,6 +39,7 @@ All the files located in `quantum_computer_codes/` are useful to the calculation
 - The `generate.py` is meant to generate the specified matrices, print them in the CMD and save them as `.npy` files in `output/`.
 - The `graph.py` is to make a graph with the generated matrices. The code will use the right set of matrices depending if you are generating a graph from the quantum computer matrices or the fock benchmark matrices. The spectrum is outputted as a pdf in the same folder as `parameter.py`, and its file name corresponds to which matrices were used (ibmq or fock). This code also outputs a `local_dos.dat` file in `output/`.
 - The `hamiltonian_circuit.py` contains the hidden code to generate automatically grid shapped lattices for all implementations of the green function calculation (qiskit, qcm and fock).
+- The `mapping.py` contains the code that finds the best possible qubits for the calculation. This code was provided by a collegue. It doesn't seem to work with some circuits.
 ---
 
 - The `qcm_benchmark.py`, similarly to `graph.py`, will generate a graph of the Green Function using the "qcm" package. Said graph will be called `qcm_spectrum.pdf`. The file also generates a `local_dos_qcm.dat` file in `output/`. 
