@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ### Packages ################################################
 import numpy as np
 from mpire import WorkerPool

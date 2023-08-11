@@ -32,10 +32,10 @@ job_ids = {# Add the ids of the job in the same order they were submitted intial
 
 
 ### Physic parameters ###
-N = 2
+N = 4
 t = -1
 U = 4
-mu = 2
+mu = 0
 spin_green = '+'                                 # Either '+' or '-'.
 spin_gs = '+'                                    # Either '+' or '-'.
 
@@ -50,7 +50,7 @@ produce_latex_circuit = True
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites.def'
+excit_document = f'excitation{N}sites_incomplete_mu0.def'
 
 
 ### Noisy simulation ###

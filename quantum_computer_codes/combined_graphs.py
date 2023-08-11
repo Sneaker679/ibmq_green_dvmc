@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ### Pacakges ################################################
 import matplotlib.pyplot as plt
 import numpy as np
