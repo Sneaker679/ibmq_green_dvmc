@@ -259,29 +259,32 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
 
     print('Observables calculation...')
     # This loop creates a list of the parameters to be used for each element in the matrix
-    with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
-        param = []
-        for n in range(N_exc):
-            for j in range(N):
-                for m in range(N_exc):
-                    for i in range(N): 
-                        """The 2 following lines represents the distribution of the calculated values in the
-                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
-                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
-                        The same logic applies to the rows, but i becomes j and m becomes n."""
-                        column_num = N * m + i
-                        row_num = N * n + j
+    #with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
 
-                        if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
-                            param.append((spin,lines_doc,type,i,m,j,n))
+    param = []
+    observables = []
+    for n in range(N_exc):
+        for j in range(N):
+            for m in range(N_exc):
+                for i in range(N): 
+                    """The 2 following lines represents the distribution of the calculated values in the
+                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                    The same logic applies to the rows, but i becomes j and m becomes n."""
+                    column_num = N * m + i
+                    row_num = N * n + j
 
-        '''Using the list of parameters, we use the defined pool to queue all the calculations at once.
-        Each element of the matrix is equivalent to one process. When a process is done, the pool
-        automatically asigns a new task. The output is a list with the results being in the same order
-        as the param list. The reason the mpire module is used instead of the included multiprocessing
-        module is because mpire is easier to use and supports sharing objects with all the processes
-        (in this case the hamiltonian). As a nice bonus, we have a progress bar.'''
-        observables = pool.map(qubit_Observable,param,progress_bar=True)
+                    if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                        observables.append(qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n))
+                        #param.append((spin,lines_doc,type,i,m,j,n))
+
+    '''Using the list of parameters, we use the defined pool to queue all the calculations at once.
+    Each element of the matrix is equivalent to one process. When a process is done, the pool
+    automatically asigns a new task. The output is a list with the results being in the same order
+    as the param list. The reason the mpire module is used instead of the included multiprocessing
+    module is because mpire is easier to use and supports sharing objects with all the processes
+    (in this case the hamiltonian). As a nice bonus, we have a progress bar.'''
+    #observables = pool.map(qubit_Observable,param,progress_bar=True)
 
     return observables
 

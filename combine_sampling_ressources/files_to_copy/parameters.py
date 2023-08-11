@@ -50,7 +50,7 @@ produce_latex_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites_incomplete.def'
+excit_document = f'excitation{N}sites.def'
 
 
 ### Noisy simulation ###

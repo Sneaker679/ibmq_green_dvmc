@@ -7,8 +7,8 @@ run_on_quantum_computer = False
 max_circuit_per_job = 30
 
 channel = "ibm_quantum"
-token = "token here"
-backend_device = "ibmq_sherbrooke"
+token = "cb126676620a07ab41a804717ada1d62b22f5d747e049bb7bf1c034e6f913c691898cc5b52078044b23df49c747dbc1dae34c08b670967ad0d2d9f810c112bbe"
+backend_device = "ibm_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
 # Backend Options
@@ -41,11 +41,12 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 ### Code parameters ###
-use_qcm = False
+use_qcm = True
 
 force_custom_lattice = False
 force_custom_circuit = False
 decompose_and_print_circuit = False
+produce_latex_circuit = True
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
@@ -88,6 +89,7 @@ graph_for_qcm = True
 import matplotlib as mpl
 from qiskit_ibm_runtime.options import Options
 from qiskit import QuantumCircuit,QuantumRegister
+from qiskit.compiler import transpile
 from qiskit_nature.second_q.hamiltonians.lattices import (
     Lattice,
     BoundaryCondition,
@@ -155,10 +157,8 @@ if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and le
 ####################################
 
 # Don't modify this following line #
-circuit = QuantumCircuit(2*N)
-
-circuit.x(0)
-
+qr = QuantumRegister(2*N,'qr')
+circuit = QuantumCircuit(qr)
 ####################################
 
 

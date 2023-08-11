@@ -1,6 +1,6 @@
 # ibmq_green_dvmc
 
-### Warning: This code is untested for Windows. Works on linux.
+### Warning: This code is untested for Windows and MacOS. Works on linux Ubuntu.
 
 ## Table of Contents
 - [Installation](#installation)
