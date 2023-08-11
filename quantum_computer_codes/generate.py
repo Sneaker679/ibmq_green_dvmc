@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy,time,sys,os
 from datetime import datetime
-from mpire import WorkerPool
 from qiskit_ibm_runtime import Session,QiskitRuntimeService,Estimator as QC_Estimator
 from qiskit_ibm_runtime.options import Options
 from qiskit_aer.primitives import Estimator as Noisy_Estimator
@@ -31,6 +30,7 @@ from parameters import (
     token,channel,backend_device,max_circuit_per_job,custom_qubits,
     recover_jobs,job_ids,    
     force_custom_circuit,
+    parallelize_observable_calculation
 )
 from hamiltonian_circuit import Hamiltonian, circuit, continue_with_diag
 
@@ -47,6 +47,8 @@ else:
 
 from mapping import find_best_layout
 
+if parallelize_observable_calculation is True:
+    from mpire import WorkerPool
 
 ### Print options ##########################################
 np.set_printoptions(linewidth= 1000,precision=2,suppress=True)
@@ -86,8 +88,7 @@ def create(N,site,spin):
     The equation in the parenthesis is simply to accomodate qiskit's notation for
     the fock space.
 
-    | 0,up 0,down 1,up 1,down >
-    NOTE: This last line is false? Currently, the notation implemented is | 0,down 0,up 1,down 1,up > and it yields the correct results.
+    | 1,up 1,down 0,up 0,down >
     """
     operator = FermionicOp(
         {
@@ -260,29 +261,34 @@ def matrix_observables(type,lines_doc,N,spin,hamiltonian):
 
     print('Observables calculation...')
     # This loop creates a list of the parameters to be used for each element in the matrix
-    with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
-        param = []
-        for n in range(N_exc):
-            for j in range(N):
-                for m in range(N_exc):
-                    for i in range(N): 
-                        """The 2 following lines represents the distribution of the calculated values in the
-                        matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
-                        would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
-                        The same logic applies to the rows, but i becomes j and m becomes n."""
-                        column_num = N * m + i
-                        row_num = N * n + j
+    param = []
+    observables = []
+    for n in range(N_exc):
+        for j in range(N):
+            for m in range(N_exc):
+                for i in range(N): 
+                    """The 2 following lines represents the distribution of the calculated values in the
+                    matrix. For each m, there are (for 2 sites) 2 values of i. Thus, the first 2 columns
+                    would be for m = 0 and for 0 <= i <= 1, then the next 2 for m = 1 and for 0 <= i <= 1.
+                    The same logic applies to the rows, but i becomes j and m becomes n."""
+                    column_num = N * m + i
+                    row_num = N * n + j
 
-                        if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                    if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                        if parallelize_observable_calculation is True:
                             param.append((spin,lines_doc,type,i,m,j,n))
+                        else:
+                            observables.append(qubit_Observable(hamiltonian,spin,lines_doc,type,i,m,j,n))
 
-        '''Using the list of parameters, we use the defined pool to queue all the calculations at once.
-        Each element of the matrix is equivalent to one process. When a process is done, the pool
-        automatically asigns a new task. The output is a list with the results being in the same order
-        as the param list. The reason the mpire module is used instead of the included multiprocessing
-        module is because mpire is easier to use and supports sharing objects with all the processes
-        (in this case the hamiltonian). As a nice bonus, we have a progress bar.'''
-        observables = pool.map(qubit_Observable,param,progress_bar=True)
+    '''Using the list of parameters, we use the defined pool to queue all the calculations at once.
+    Each element of the matrix is equivalent to one process. When a process is done, the pool
+    automatically asigns a new task. The output is a list with the results being in the same order
+    as the param list. The reason the mpire module is used instead of the included multiprocessing
+    module is because mpire is easier to use and supports sharing objects with all the processes
+    (in this case the hamiltonian). As a nice bonus, we have a progress bar.'''
+    if parallelize_observable_calculation is True:
+        with WorkerPool(n_jobs=None,shared_objects=(hamiltonian)) as pool:
+            observables = pool.map(qubit_Observable,param,progress_bar=True)
 
     return observables
 

@@ -1,7 +1,7 @@
 # Overview of the parameters in `parameters.py`.
 
 ## IBM Credentials
-- run_on_quantum_computer (Y/N) : If you want to run the code on a quantum computer, change this to 'Y'. Make sure your IBM credentials are correctly configured below.
+- run_on_quantum_computer : Boolean. If you want to run the code on a quantum computer, change this to 'True'. Make sure your IBM credentials are correctly configured below.
 - max_circuit_per_job : Integer that states how many circuits should a single job have. The code splits the workload on multiple jobs, hence why this parameter may be important.
 - channel : Channel to connect to. To connect to IBM quantum computers, input 'ibm_quantum'
 - token : Refer to your IBM account for your token.
@@ -25,22 +25,21 @@ max_execution_time : Maximum runtime of the job. Leave it to None to not apply a
 
 
 ## Code parameters
-- use_qcm (Y/N) : Calls or doesn't call the QCM module in the code. This is because the QCM installation may be difficult for some, thus this benchmark is optionnal.
+- use_qcm Boolean : Calls or doesn't call the QCM module in the code. This is because the QCM installation may be difficult for some, thus this benchmark is optionnal.
 
-- force_custom_lattice (Y/N): This will tell the code to use the custom lattice models inputted in `parameters.py` instead of the automatically generated lattice.
-- hopping_matrix_for_qiskit_lattice (Y/N) (NO LONGER A PARAMETER SINCE A SIMPLER SOLUTION WAS FOUND): If force_custom_lattice == 'Y', the current implementation can initialize a qiskit lattice in 2 ways. The first one is by using a hopping matrix, defined in `parameters.py`. The second option is to initialize the lattice using qiskit's Lattice model classes and work from there. Highly custom lattices can be created from it, which could be very useful for the user. However, by using this second method, it is possible that the spectrums of the benchmarks don't overlap with the spectrum of qiskit, because the labels of the sites are different depending on the source code of the packages. This is why, as the user, you get to choose between using a hopping matrix to initialize the lattice, or using the lattice classes of qiskit. 
-
-- force_custom_circuit (Y/N): By default, the code will initialize the qubits of the circuit with an exact ground state vector. If you wish to test your own custom circuit, input 'Y'.
-- decompose_and_print_circuit (Y/N): The circuit used in the code can be decomposed by qiskits into more elementary gates. By decomposing the circuit, said circuit will be printed in the CMD for you to see, and this decomposed circuit will also be used in the code. You will quickly notice that it is not very practical to have this on, because calculation times are way longer and the circuit itself becomes enourmous.
+- force_custom_lattice : Boolean. This will tell the code to use the custom lattice models inputted in `parameters.py` instead of the automatically generated lattice. The code will always try to generate a lattice that forms a grid. If the code cannot make the number of sites inputted into a grid shapped lattice, the code will HAVE to use the custom lattice you inputted EVEN if this is set to False. The code cannot generate grid shapped lattices if the inputted number of sites is a prime number. In other words, if N == prime_number, then force_custom_lattice = True.
+- force_custom_circuit : Boolean. By default, the code will initialize the qubits of the circuit with an exact ground state vector. If you wish to test your own custom circuit, input "True".
+- decompose_and_print_circuit : Boolean that states if the circuit used in the code should be decomposed by qiskits into more elementary gates. By decomposing the circuit, said circuit will be printed in the CMD for you to see, and this decomposed circuit will also be used in the code. You will quickly notice that it is not very practical to have this on, because calculation times are way longer and the circuit itself becomes enourmous.
 - produce_latex_circuit : Boolean that states if the latex commands to create an image of the used circuit should be printed in the cmd.
 
-- generate_npy (Y/N): This is for saving, or not, the matrices as `.npy` files. These should always be left on 'Y', because `graph.py` uses these files as input for the program.
+- generate_npy : Boolean. This is for saving, or not, the matrices as `.npy` files. This should always be left on 'True', because `graph.py` uses these files as input for the program.
 - generate_matrix (H+,H-,S+,S-,ALL) : By default, this is on 'ALL'. It means that everytime you run the code, all the matrices are going to be calculated again. If you only want to calculate one, then you change this parameter to reflect that choice.    
 - excit_document : This is the name of the `excitation.def` file to be used by the program. Said file needs to be in the same directory as `parameters.py`.
 
+- parrallelize_observable_calculation : Boolean that states if the code should be parallelized for optimal run times.
 
 ## Noisy simulation parameters
-- noisy_simulation (Y/N): Noise can be added to the simulation. Input 'Y' to have noise. Note that qiskit does not parallelize this simulation, thus the calculation can take days to complete. Not very practical. 
+- noisy_simulation : Boolean. Noise can be added to the simulation. Input 'True' to have noise. Note that qiskit does not parallelize this simulation, thus the calculation can take days to complete. Not very practical. 
 
 
 # Graph parameters

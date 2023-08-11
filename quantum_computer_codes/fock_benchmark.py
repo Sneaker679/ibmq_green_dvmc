@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 ### Packages ################################################
 import numpy as np
-from mpire import WorkerPool
 import copy
 import time
 import sys,os
@@ -13,7 +12,7 @@ sys.path.insert(0,module_directory)
 working_directory = os.getcwd()
 sys.path.insert(0,working_directory)
 
-from parameters import N,t,hopping_matrix,U,mu,generate_matrix,excit_document,spin_green,spin_gs,generate_npy,output_directory,pdf_output_directory
+from parameters import N,t,hopping_matrix,U,mu,generate_matrix,excit_document,spin_green,spin_gs,generate_npy,output_directory,pdf_output_directory,parallelize_observable_calculation
 from hamiltonian_circuit import hopping_matrix
 
 
@@ -33,6 +32,8 @@ sys.path.insert(0,os.path.join(module_directory,'..','second_quantization_codes'
 import fock_class as f
 from hubbard_classes import hubbard
 
+if parallelize_observable_calculation is True:
+    from mpire import WorkerPool
 
 # Print options
 np.set_printoptions(linewidth = 1000,precision=2,suppress=True)
@@ -264,19 +265,24 @@ def matrix(type,lines_doc,N,spin,spin_gs,t,hopping_matrix,U,mu,save):
 
     # Filling half of the matrix
     shared_lists = (hubbard_output,gs_block,gs_numerical_state,lines_doc)
-    with WorkerPool(n_jobs=None,shared_objects=(shared_lists)) as pool:
-        param = []
-        for n in range(N_exc):
-            for j in range(N):
-                for m in range(N_exc):
-                    for i in range(N):
-                        column_num = N * m + i
-                        row_num = N * n + j
+    param = []
+    values = []
+    for n in range(N_exc):
+        for j in range(N):
+            for m in range(N_exc):
+                for i in range(N):
+                    column_num = N * m + i
+                    row_num = N * n + j
 
-                        if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                    if column_num - row_num >= 0: # This is to calculate only half of the matrix, including the diagonal.
+                        if parallelize_observable_calculation is True:
                             param.append((spin,type,i,m,j,n))
+                        else:
+                            values.append(parrallelized_element(shared_lists,spin,type,i,m,j,n))
 
-        values = pool.map(parrallelized_element,param,progress_bar=True)
+    if parallelize_observable_calculation is True:
+        with WorkerPool(n_jobs=None,shared_objects=(shared_lists)) as pool:
+            values = pool.map(parrallelized_element,param,progress_bar=True)
 
     # Filling matrix
     correction = 0

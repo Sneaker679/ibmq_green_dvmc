@@ -7,7 +7,7 @@ run_on_quantum_computer = False
 max_circuit_per_job = 30
 
 channel = "ibm_quantum"
-token = "cb126676620a07ab41a804717ada1d62b22f5d747e049bb7bf1c034e6f913c691898cc5b52078044b23df49c747dbc1dae34c08b670967ad0d2d9f810c112bbe"
+token = "token"
 backend_device = "ibm_sherbrooke"
     # List of backends here: https://quantum-computing.ibm.com/services/resources?tab=yours
 
@@ -41,16 +41,18 @@ spin_gs = '+'                                    # Either '+' or '-'.
 
 
 ### Code parameters ###
-use_qcm = True
+use_qcm = False
 
 force_custom_lattice = False
 force_custom_circuit = False
 decompose_and_print_circuit = False
-produce_latex_circuit = True
+produce_latex_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
 excit_document = f'excitation{N}sites.def'
+
+parallelize_observable_calculation = True
 
 
 ### Noisy simulation ###
