@@ -50,7 +50,9 @@ produce_latex_circuit = False
 
 generate_npy = True
 generate_matrix = 'ALL'                          # 'H+','H-','S+','S-' or 'ALL'.
-excit_document = f'excitation{N}sites.def'
+excit_document = f'excitation{N}sites_incomplete_mu2.def'
+
+parallelize_observable_calculation = True
 
 
 ### Noisy simulation ###
@@ -159,49 +161,6 @@ if (use_qcm is True and force_custom_lattice is True) or (use_qcm is True and le
 # Don't modify this following line #
 qr = QuantumRegister(2*N,'qr')
 circuit = QuantumCircuit(qr)
-'''
-θ = np.arccos(np.sqrt(8)*0.26136036)
-ϕ = np.arccos(2*0.30581423/np.sin(θ))
-#we build the spin down:
-circuit.ry(2*θ,0)
-circuit.ch(target_qubit=2,control_qubit=0,ctrl_state=0)
-circuit.cry(2*ϕ,target_qubit=3,control_qubit=0)
-circuit.ccx(target_qubit=1,control_qubit1=0,control_qubit2=2,ctrl_state=0)
-circuit.cx(target_qubit=0,control_qubit=3)
-
-#we build the spin up:
-circuit.h(4)
-circuit.h(5)
-circuit.ccx(target_qubit=6,control_qubit1=5,control_qubit2=4)
-circuit.ccx(target_qubit=7,control_qubit1=5,control_qubit2=4,ctrl_state=0)
-circuit.cx(target_qubit=5,control_qubit=6)
-circuit.cx(target_qubit=4,control_qubit=6)
-
-# we apply the swaps:
-circuit.cswap(control_qubit=4, target_qubit1=3, target_qubit2=0)
-circuit.cswap(control_qubit=5, target_qubit1=3, target_qubit2=1)
-circuit.cswap(control_qubit=5, target_qubit1=2, target_qubit2=0)
-circuit.cswap(control_qubit=6, target_qubit1=3, target_qubit2=2)
-circuit.cswap(control_qubit=6, target_qubit1=1, target_qubit2=0)
-
-# we apply the phase:
-circuit.cz(control_qubit=4,target_qubit=3)
-circuit.cz(control_qubit=4,target_qubit=2)
-circuit.cz(control_qubit=4,target_qubit=1)
-
-circuit.cz(control_qubit=5,target_qubit=2)
-circuit.cz(control_qubit=5,target_qubit=3)
-
-circuit.cz(control_qubit=6,target_qubit=3)
-
-
-circuit.draw('mpl')
-import matplotlib.pyplot as plt
-plt.show()
-
-
-circuit = transpile(circuit, initial_layout=[qr[0],qr[4],qr[1],qr[5],qr[2],qr[6],qr[3],qr[7]])
-'''
 ####################################
 
 
