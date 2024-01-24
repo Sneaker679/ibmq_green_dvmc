@@ -13,10 +13,11 @@
 ## Installation
 This is a Python code. Use the latest version of language as of 29/07/2023 to avoid issues.
 To run this code, you will need to install the following packages for your Python. The links to their documentation is also provided :
-- qiskit-->  (https://qiskit.org/documentation/getting_started.html)
-- qiskit-nature--> (https://qiskit.org/ecosystem/nature/getting_started.html)
-- qiskit-aer OR qiskit-aer-gpu-->(https://qiskit.org/ecosystem/aer/getting_started.html)
-- qiskit-ibm-runtime --> (https://qiskit.org/ecosystem/ibm-runtime/getting_started.html)
+- qiskit-->  (https://qiskit.org/documentation/getting_started.html) VERSION: 0.43.2
+- qiskit-nature--> (https://qiskit.org/ecosystem/nature/getting_started.html) VERSION: 0.6.2
+- qiskit-aer-->(https://qiskit.org/ecosystem/aer/getting_started.html) VERSION: 0.12.1
+- qiskit-ibm-runtime--> (https://qiskit.org/ecosystem/ibm-runtime/getting_started.html) VERSION: 0.11.2
+- qiskit-ibm-provider--> (`pip install qiskit-ibm-provider==0.6.1`) VERSION: 0.6.1
 - matplotlib--> (https://matplotlib.org/stable/users/getting_started/index.html#installation-quick-start)
 - numpy--> (https://numpy.org/install/)
 - mpire--> (https://sybrenjansen.github.io/mpire/v2.3.0/install.html)
